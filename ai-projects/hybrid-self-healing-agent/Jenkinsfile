@@ -93,7 +93,7 @@ pipeline {
                           echo "No changes"
                         else
                           git commit -m "[ai] auto-fix code + dependency issue"
-                          git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/AI-DevOps.git
+                          git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
                           git push origin main
                         fi
                         '''
