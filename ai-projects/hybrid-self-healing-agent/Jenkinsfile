@@ -15,12 +15,28 @@ pipeline {
             }
         }
 
-
         stage('Build with Maven') {
             steps {
                 script {
                     def status = sh(script: '''
                         cd ai-projects/hybrid-self-healing-agent
+                        echo "🚀 Running Maven Build..."
                         mvn clean install -U > build.log 2>&1
+                    ''', returnStatus: true)
+
+                    def log = readFile 'ai-projects/hybrid-self-healing-agent/build.log'
+                    echo "===== BUILD LOG START ====="
+                    echo log
+                    echo "===== BUILD LOG END ====="
+
+                    if (status != 0) {
+                        echo "❌ Build Failed"
+                        writeFile file: 'ai-projects/hybrid-self-healing-agent/build_failed', text: 'failed'
+                    } else {
+                        echo "✅ Build Passed"
+                    }
+                }
             }
         }
+    }
+}
