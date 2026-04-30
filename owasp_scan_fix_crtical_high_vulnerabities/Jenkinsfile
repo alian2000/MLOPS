@@ -1,0 +1,174 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven3'
+    }
+
+    stages {
+
+        stage('Clone Code') {
+            steps {
+                git branch: 'main',
+                    credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
+                    url: 'https://github.com/Rohitcs09/MLOPS.git'
+            }
+        }
+
+        stage('Skip AI Loop') {
+            steps {
+                script {
+                    def msg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
+                    echo "Last commit message: ${msg}"
+
+                    if (msg.contains("[ai]")) {
+                        echo "AI commit detected → stopping loop"
+                        currentBuild.result = 'SUCCESS'
+                        return
+                    }
+                }
+            }
+        }
+
+	
+
+stage('Build + OWASP Scan') {
+    steps {
+        script {
+
+            def mvnHome = tool 'Maven3'
+
+            withEnv(["PATH+MAVEN=${mvnHome}/bin"]) {
+
+                withCredentials([string(credentialsId: 'NVD_API_KEY', variable: 'NVD_API_KEY')]) {
+
+                    sh '''
+                    set +e
+
+                    echo "📦 Maven Version:"
+                    mvn -version
+
+                    cd owasp_scan_fix_crtical_high_vulnerabities/ai-devops-maven
+
+                    echo "🚀 Build..."
+                    mvn clean install -DskipTests -U
+
+                    echo "🔍 OWASP Scan with NVD API Key..."
+                    mvn org.owasp:dependency-check-maven:9.0.9:check \
+                        -Dnvd.api.key=$NVD_API_KEY \
+                        -Dformat=JSON
+
+                    echo "📂 Target folder:"
+                    ls -l target/ || true
+
+                    set -e
+                    '''
+                }
+            }
+
+            // ✅ Check report
+            def reportExists = fileExists(
+                'owasp_scan_fix_crtical_high_vulnerabities/ai-devops-maven/target/dependency-check-report.json'
+            )
+
+            if (!reportExists) {
+                echo "⚠️ OWASP report NOT generated (forcing AI run)"
+
+                writeFile file: 'owasp_scan_fix_crtical_high_vulnerabities/build_failed', text: 'no_report'
+            } else {
+                echo "✅ OWASP report generated"
+
+                writeFile file: 'owasp_scan_fix_crtical_high_vulnerabities/build_failed', text: 'vulnerabilities_found'
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+	// -------------------------------
+        // 🤖 AI SECURITY FIX
+        // -------------------------------
+        stage('AI Security Fix') {
+            when {
+                expression {
+                    return fileExists('owasp_scan_fix_crtical_high_vulnerabities/build_failed')
+                }
+            }
+            steps {
+                script {
+                    echo "🤖 Running AI Security Fix..."
+
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
+                            usernameVariable: 'GIT_USER',
+                            passwordVariable: 'GIT_PASS'
+                        ),
+                        string(credentialsId: 'OPENAI_API_KEY', variable: 'OPENAI_API_KEY')
+                    ]) {
+
+                        sh '''
+                        cd owasp_scan_fix_crtical_high_vulnerabities
+
+                        echo "📂 Current Path:"
+                        pwd
+
+                        echo "📦 Installing Python dependencies..."
+                        python3 -m pip install --break-system-packages openai
+
+                        export OPENAI_API_KEY=$OPENAI_API_KEY
+
+                        echo "🤖 Running AI Agent..."
+                        python3 ai-agent.py
+
+                        git config user.email "jenkins@ai.com"
+                        git config user.name "Jenkins AI Bot"
+
+                        git add .
+
+                        if git diff --cached --quiet; then
+                          echo "No changes"
+                        else
+                          git commit -m "[ai] security fix (OWASP High/Critical)"
+                          git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/AI-DevOps.git
+                          git push origin main
+                        fi
+                        '''
+                    }
+                }
+            }
+        }
+
+        // -------------------------------
+        // 🔁 REBUILD AFTER FIX
+        // -------------------------------
+        stage('Rebuild After Fix') {
+            when {
+                expression {
+                    return fileExists('owasp_scan_fix_crtical_high_vulnerabities/build_failed')
+                }
+            }
+            steps {
+                script {
+                    def status = sh(script: '''
+                        cd owasp_scan_fix_crtical_high_vulnerabities/ai-devops-maven
+
+                        echo "🔁 Rebuilding after AI fix..."
+                        mvn clean install -DskipTests -U
+                    ''', returnStatus: true)
+
+                    if (status != 0) {
+                        error("❌ Build still failing after AI fix")
+                    } else {
+                        echo "✅ Build Fixed Successfully"
+                    }
+                }
+            }
+        }
+    }
+}
