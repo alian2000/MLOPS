@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven3'
+    }
+
+    stages {
+
+        stage('Clone Code') {
+            steps {
+                git branch: 'main',
+                    credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
+                    url: 'https://github.com/Rohitcs09/AI-DevOps.git'
+            }
+        }
+
+
+        stage('Build with Maven') {
+            steps {
+                script {
+                    def status = sh(script: '''
+                        cd ai-projects/hybrid-self-healing-agent
+                        mvn clean install -U > build.log 2>&1
+            }
+        }
