@@ -4,18 +4,18 @@
 [INFO] Building self-healing 1.0
 [INFO]   from pom.xml
 [INFO] --------------------------------[ jar ]---------------------------------
-Downloading from central: https://repo.maven.apache.org/maven2/junit/junit/3.8.3/junit-3.8.3.pom
-[WARNING] The POM for junit:junit:jar:3.8.3 is missing, no dependency information available
-Downloading from central: https://repo.maven.apache.org/maven2/junit/junit/3.8.3/junit-3.8.3.jar
+Downloading from central: https://repo.maven.apache.org/maven2/junit/junit/1.1.0/junit-1.1.0.pom
+[WARNING] The POM for junit:junit:jar:1.1.0 is missing, no dependency information available
+Downloading from central: https://repo.maven.apache.org/maven2/junit/junit/1.1.0/junit-1.1.0.jar
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  1.717 s
-[INFO] Finished at: 2026-04-21T18:40:10Z
+[INFO] Total time:  1.134 s
+[INFO] Finished at: 2026-04-30T23:27:56Z
 [INFO] ------------------------------------------------------------------------
 [ERROR] Failed to execute goal on project self-healing: Could not resolve dependencies for project com.ai:self-healing:jar:1.0
-[ERROR] dependency: junit:junit:jar:3.8.3 (test)
-[ERROR] 	Could not find artifact junit:junit:jar:3.8.3 in central (https://repo.maven.apache.org/maven2)
+[ERROR] dependency: junit:junit:jar:1.1.0 (test)
+[ERROR] 	Could not find artifact junit:junit:jar:1.1.0 in central (https://repo.maven.apache.org/maven2)
 [ERROR] 
 [ERROR] -> [Help 1]
 [ERROR] 
@@ -33,16 +33,16 @@ Downloading from central: https://repo.maven.apache.org/maven2/junit/junit/3.8.3
 [INFO] Building self-healing 1.0
 [INFO]   from pom.xml
 [INFO] --------------------------------[ jar ]---------------------------------
-[WARNING] The POM for junit:junit:jar:3.8.3 is missing, no dependency information available
+[WARNING] The POM for junit:junit:jar:1.1.0 is missing, no dependency information available
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  0.538 s
-[INFO] Finished at: 2026-04-21T18:40:15Z
+[INFO] Total time:  0.283 s
+[INFO] Finished at: 2026-04-30T23:28:00Z
 [INFO] ------------------------------------------------------------------------
 [ERROR] Failed to execute goal on project self-healing: Could not resolve dependencies for project com.ai:self-healing:jar:1.0
-[ERROR] dependency: junit:junit:jar:3.8.3 (test)
-[ERROR] 	junit:junit:jar:3.8.3 was not found in https://repo.maven.apache.org/maven2 during a previous attempt. This failure was cached in the local repository and resolution is not reattempted until the update interval of central has elapsed or updates are forced
+[ERROR] dependency: junit:junit:jar:1.1.0 (test)
+[ERROR] 	junit:junit:jar:1.1.0 was not found in https://repo.maven.apache.org/maven2 during a previous attempt. This failure was cached in the local repository and resolution is not reattempted until the update interval of central has elapsed or updates are forced
 [ERROR] 
 [ERROR] -> [Help 1]
 [ERROR] 
@@ -54,9 +54,7 @@ Downloading from central: https://repo.maven.apache.org/maven2/junit/junit/3.8.3
 
 --- ERRORS ---
 
-👉 Missing semicolon detected
-
-👉 Fixed Java syntax (semicolon added)
+👉 No syntax issue found
 
 👉 JUnit dependency set to 4.13.2
 
@@ -106,8 +104,8 @@ Downloading from central: https://repo.maven.apache.org/maven2/junit/junit/3.8.3
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  3.130 s
-[INFO] Finished at: 2026-04-21T18:40:25Z
+[INFO] Total time:  1.784 s
+[INFO] Finished at: 2026-04-30T23:28:05Z
 [INFO] ------------------------------------------------------------------------
 
 --- ERRORS ---
