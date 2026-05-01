@@ -34,8 +34,8 @@
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  1.151 s
-[INFO] Finished at: 2026-05-01T08:33:57Z
+[INFO] Total time:  1.028 s
+[INFO] Finished at: 2026-05-01T09:00:23Z
 [INFO] ------------------------------------------------------------------------
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:compile (default-compile) on project self-healing: Compilation failure
 [ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/java/App.java:[3,39] ';' expected
@@ -86,8 +86,8 @@
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  5.728 s
-[INFO] Finished at: 2026-05-01T08:34:06Z
+[INFO] Total time:  1.822 s
+[INFO] Finished at: 2026-05-01T09:00:28Z
 [INFO] ------------------------------------------------------------------------
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:compile (default-compile) on project self-healing: Compilation failure
 [ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/java/App.java:[3,39] ';' expected
@@ -154,8 +154,8 @@
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  2.947 s
-[INFO] Finished at: 2026-05-01T08:34:14Z
+[INFO] Total time:  2.917 s
+[INFO] Finished at: 2026-05-01T09:00:36Z
 [INFO] ------------------------------------------------------------------------
 
 --- ERRORS ---
