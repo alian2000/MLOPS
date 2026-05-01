@@ -6,11 +6,11 @@
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- clean:3.2.0:clean (default-clean) @ self-healing ---
-[INFO] Deleting /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/target
+[INFO] Deleting /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/target
 [INFO] 
 [INFO] --- resources:3.4.0:resources (default-resources) @ self-healing ---
 [WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
-[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/src/main/resources
+[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/resources
 [INFO] 
 [INFO] --- compiler:3.15.0:compile (default-compile) @ self-healing ---
 [INFO] Recompiling the module because of changed source code.
@@ -28,17 +28,17 @@
 [INFO] -------------------------------------------------------------
 [ERROR] COMPILATION ERROR : 
 [INFO] -------------------------------------------------------------
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/src/main/java/App.java:[3,39] ';' expected
+[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/java/App.java:[3,39] ';' expected
 [INFO] 1 error
 [INFO] -------------------------------------------------------------
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  2.323 s
-[INFO] Finished at: 2026-05-01T08:19:12Z
+[INFO] Total time:  2.146 s
+[INFO] Finished at: 2026-05-01T08:31:23Z
 [INFO] ------------------------------------------------------------------------
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:compile (default-compile) on project self-healing: Compilation failure
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/src/main/java/App.java:[3,39] ';' expected
+[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/java/App.java:[3,39] ';' expected
 [ERROR] 
 [ERROR] -> [Help 1]
 [ERROR] 
@@ -58,11 +58,11 @@
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- clean:3.2.0:clean (default-clean) @ self-healing ---
-[INFO] Deleting /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/target
+[INFO] Deleting /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/target
 [INFO] 
 [INFO] --- resources:3.4.0:resources (default-resources) @ self-healing ---
 [WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
-[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/src/main/resources
+[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/resources
 [INFO] 
 [INFO] --- compiler:3.15.0:compile (default-compile) @ self-healing ---
 [INFO] Recompiling the module because of changed source code.
@@ -80,17 +80,17 @@
 [INFO] -------------------------------------------------------------
 [ERROR] COMPILATION ERROR : 
 [INFO] -------------------------------------------------------------
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/src/main/java/App.java:[3,39] ';' expected
+[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/java/App.java:[3,39] ';' expected
 [INFO] 1 error
 [INFO] -------------------------------------------------------------
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  2.163 s
-[INFO] Finished at: 2026-05-01T08:19:18Z
+[INFO] Total time:  2.081 s
+[INFO] Finished at: 2026-05-01T08:31:29Z
 [INFO] ------------------------------------------------------------------------
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:compile (default-compile) on project self-healing: Compilation failure
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/src/main/java/App.java:[3,39] ';' expected
+[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/java/App.java:[3,39] ';' expected
 [ERROR] 
 [ERROR] -> [Help 1]
 [ERROR] 
@@ -120,11 +120,11 @@
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- clean:3.2.0:clean (default-clean) @ self-healing ---
-[INFO] Deleting /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/target
+[INFO] Deleting /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/target
 [INFO] 
 [INFO] --- resources:3.4.0:resources (default-resources) @ self-healing ---
 [WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
-[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/src/main/resources
+[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/resources
 [INFO] 
 [INFO] --- compiler:3.15.0:compile (default-compile) @ self-healing ---
 [INFO] Recompiling the module because of changed source code.
@@ -137,7 +137,7 @@
 [INFO] 
 [INFO] --- resources:3.4.0:testResources (default-testResources) @ self-healing ---
 [WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
-[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/src/test/resources
+[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/test/resources
 [INFO] 
 [INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ self-healing ---
 [INFO] No sources to compile
@@ -146,16 +146,16 @@
 [INFO] No tests to run.
 [INFO] 
 [INFO] --- jar:3.5.0:jar (default-jar) @ self-healing ---
-[INFO] Building jar: /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/target/self-healing-1.0.jar
+[INFO] Building jar: /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/target/self-healing-1.0.jar
 [INFO] 
 [INFO] --- install:3.1.4:install (default-install) @ self-healing ---
-[INFO] Installing /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/pom.xml to /var/jenkins_home/.m2/repository/com/ai/self-healing/1.0/self-healing-1.0.pom
-[INFO] Installing /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/target/self-healing-1.0.jar to /var/jenkins_home/.m2/repository/com/ai/self-healing/1.0/self-healing-1.0.jar
+[INFO] Installing /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/pom.xml to /var/jenkins_home/.m2/repository/com/ai/self-healing/1.0/self-healing-1.0.pom
+[INFO] Installing /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/target/self-healing-1.0.jar to /var/jenkins_home/.m2/repository/com/ai/self-healing/1.0/self-healing-1.0.jar
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  3.577 s
-[INFO] Finished at: 2026-05-01T08:19:26Z
+[INFO] Total time:  2.961 s
+[INFO] Finished at: 2026-05-01T08:31:36Z
 [INFO] ------------------------------------------------------------------------
 
 --- ERRORS ---
