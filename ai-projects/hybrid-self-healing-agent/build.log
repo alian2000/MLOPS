@@ -4,41 +4,18 @@
 [INFO] Building self-healing 1.0
 [INFO]   from pom.xml
 [INFO] --------------------------------[ jar ]---------------------------------
-[INFO] 
-[INFO] --- clean:3.2.0:clean (default-clean) @ self-healing ---
-[INFO] Deleting /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/target
-[INFO] 
-[INFO] --- resources:3.4.0:resources (default-resources) @ self-healing ---
-[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
-[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/resources
-[INFO] 
-[INFO] --- compiler:3.15.0:compile (default-compile) @ self-healing ---
-[INFO] Recompiling the module because of changed source code.
-[WARNING] File encoding has not been set, using platform encoding UTF-8, i.e. build is platform dependent!
-[INFO] Compiling 1 source file with javac [debug target 1.8] to target/classes
-[INFO] -------------------------------------------------------------
-[WARNING] COMPILATION WARNING : 
-[INFO] -------------------------------------------------------------
-[WARNING] bootstrap class path not set in conjunction with -source 8
-[WARNING] source value 8 is obsolete and will be removed in a future release
-[WARNING] target value 8 is obsolete and will be removed in a future release
-[WARNING] To suppress warnings about obsolete options, use -Xlint:-options.
-[INFO] 4 warnings 
-[INFO] -------------------------------------------------------------
-[INFO] -------------------------------------------------------------
-[ERROR] COMPILATION ERROR : 
-[INFO] -------------------------------------------------------------
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/java/App.java:[3,39] ';' expected
-[INFO] 1 error
-[INFO] -------------------------------------------------------------
+Downloading from central: https://repo.maven.apache.org/maven2/junit/junit/1.1.1/junit-1.1.1.pom
+[WARNING] The POM for junit:junit:jar:1.1.1 is missing, no dependency information available
+Downloading from central: https://repo.maven.apache.org/maven2/junit/junit/1.1.1/junit-1.1.1.jar
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  1.028 s
-[INFO] Finished at: 2026-05-01T09:00:23Z
+[INFO] Total time:  8.471 s
+[INFO] Finished at: 2026-05-01T10:02:29Z
 [INFO] ------------------------------------------------------------------------
-[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:compile (default-compile) on project self-healing: Compilation failure
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/java/App.java:[3,39] ';' expected
+[ERROR] Failed to execute goal on project self-healing: Could not resolve dependencies for project com.ai:self-healing:jar:1.0
+[ERROR] dependency: junit:junit:jar:1.1.1 (test)
+[ERROR] 	Could not find artifact junit:junit:jar:1.1.1 in central (https://repo.maven.apache.org/maven2)
 [ERROR] 
 [ERROR] -> [Help 1]
 [ERROR] 
@@ -46,7 +23,7 @@
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
 [ERROR] 
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
-[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException
 
 
 ===== ATTEMPT 1 =====
@@ -56,41 +33,16 @@
 [INFO] Building self-healing 1.0
 [INFO]   from pom.xml
 [INFO] --------------------------------[ jar ]---------------------------------
-[INFO] 
-[INFO] --- clean:3.2.0:clean (default-clean) @ self-healing ---
-[INFO] Deleting /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/target
-[INFO] 
-[INFO] --- resources:3.4.0:resources (default-resources) @ self-healing ---
-[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
-[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/resources
-[INFO] 
-[INFO] --- compiler:3.15.0:compile (default-compile) @ self-healing ---
-[INFO] Recompiling the module because of changed source code.
-[WARNING] File encoding has not been set, using platform encoding UTF-8, i.e. build is platform dependent!
-[INFO] Compiling 1 source file with javac [debug target 1.8] to target/classes
-[INFO] -------------------------------------------------------------
-[WARNING] COMPILATION WARNING : 
-[INFO] -------------------------------------------------------------
-[WARNING] bootstrap class path not set in conjunction with -source 8
-[WARNING] source value 8 is obsolete and will be removed in a future release
-[WARNING] target value 8 is obsolete and will be removed in a future release
-[WARNING] To suppress warnings about obsolete options, use -Xlint:-options.
-[INFO] 4 warnings 
-[INFO] -------------------------------------------------------------
-[INFO] -------------------------------------------------------------
-[ERROR] COMPILATION ERROR : 
-[INFO] -------------------------------------------------------------
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/java/App.java:[3,39] ';' expected
-[INFO] 1 error
-[INFO] -------------------------------------------------------------
+[WARNING] The POM for junit:junit:jar:1.1.1 is missing, no dependency information available
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  1.822 s
-[INFO] Finished at: 2026-05-01T09:00:28Z
+[INFO] Total time:  1.472 s
+[INFO] Finished at: 2026-05-01T10:02:42Z
 [INFO] ------------------------------------------------------------------------
-[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:compile (default-compile) on project self-healing: Compilation failure
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/java/App.java:[3,39] ';' expected
+[ERROR] Failed to execute goal on project self-healing: Could not resolve dependencies for project com.ai:self-healing:jar:1.0
+[ERROR] dependency: junit:junit:jar:1.1.1 (test)
+[ERROR] 	junit:junit:jar:1.1.1 was not found in https://repo.maven.apache.org/maven2 during a previous attempt. This failure was cached in the local repository and resolution is not reattempted until the update interval of central has elapsed or updates are forced
 [ERROR] 
 [ERROR] -> [Help 1]
 [ERROR] 
@@ -98,15 +50,13 @@
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
 [ERROR] 
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
-[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException
 
 --- ERRORS ---
 
-👉 Missing semicolon detected
+👉 No syntax issue found
 
-👉 Fixed Java syntax (semicolon added)
-
-👉 JUnit already correct
+👉 JUnit dependency set to 4.13.2
 
 👉 Re-running build after fixes
 
@@ -120,11 +70,11 @@
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- clean:3.2.0:clean (default-clean) @ self-healing ---
-[INFO] Deleting /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/target
+[INFO] Deleting /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/target
 [INFO] 
 [INFO] --- resources:3.4.0:resources (default-resources) @ self-healing ---
 [WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
-[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/main/resources
+[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/src/main/resources
 [INFO] 
 [INFO] --- compiler:3.15.0:compile (default-compile) @ self-healing ---
 [INFO] Recompiling the module because of changed source code.
@@ -137,7 +87,7 @@
 [INFO] 
 [INFO] --- resources:3.4.0:testResources (default-testResources) @ self-healing ---
 [WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
-[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/src/test/resources
+[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/src/test/resources
 [INFO] 
 [INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ self-healing ---
 [INFO] No sources to compile
@@ -146,16 +96,16 @@
 [INFO] No tests to run.
 [INFO] 
 [INFO] --- jar:3.5.0:jar (default-jar) @ self-healing ---
-[INFO] Building jar: /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/target/self-healing-1.0.jar
+[INFO] Building jar: /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/target/self-healing-1.0.jar
 [INFO] 
 [INFO] --- install:3.1.4:install (default-install) @ self-healing ---
-[INFO] Installing /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/pom.xml to /var/jenkins_home/.m2/repository/com/ai/self-healing/1.0/self-healing-1.0.pom
-[INFO] Installing /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects-devops/hybrid-self-healing-agent/target/self-healing-1.0.jar to /var/jenkins_home/.m2/repository/com/ai/self-healing/1.0/self-healing-1.0.jar
+[INFO] Installing /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/pom.xml to /var/jenkins_home/.m2/repository/com/ai/self-healing/1.0/self-healing-1.0.pom
+[INFO] Installing /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/hybrid-self-healing-agent/target/self-healing-1.0.jar to /var/jenkins_home/.m2/repository/com/ai/self-healing/1.0/self-healing-1.0.jar
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  2.917 s
-[INFO] Finished at: 2026-05-01T09:00:36Z
+[INFO] Total time:  15.119 s
+[INFO] Finished at: 2026-05-01T10:03:06Z
 [INFO] ------------------------------------------------------------------------
 
 --- ERRORS ---
