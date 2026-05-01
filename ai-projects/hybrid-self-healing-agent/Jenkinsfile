@@ -18,15 +18,32 @@ pipeline {
         stage('Build with Maven') {
             steps {
                 script {
-                    def status = sh(script: '''
-                        cd ai-projects/hybrid-self-healing-agent
-                        echo "🚀 Running Maven Build..."
+                    def status = sh(
+                        script: """
+                            cd ai-projects/hybrid-self-healing-agent
+                            echo "🚀 Running Maven Build..."
+                            mvn clean install
+                        """,
+                        returnStatus: true
+                    )
+
+                    if (status != 0) {
                         echo "❌ Build Failed"
+                        error("Maven Build Failed")
                     } else {
                         echo "✅ Build Passed"
                     }
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo "🎉 Pipeline Completed Successfully"
+        }
+        failure {
+            echo "💥 Pipeline Failed"
         }
     }
 }
