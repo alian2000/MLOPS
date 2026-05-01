@@ -15,7 +15,8 @@ pipeline {
             }
         }
 
-        stage('Skip AI Loop') {
+
+stage('Skip AI Loop') {
             steps {
                 script {
                     def msg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
