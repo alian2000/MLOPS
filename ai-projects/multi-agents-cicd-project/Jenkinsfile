@@ -5,6 +5,11 @@ pipeline {
         maven 'Maven3'
     }
 
+    environment {
+        PROJECT_PATH = "ai-projects/multi-agents-cicd-project"
+        POM_PATH = "ai-projects/multi-agents-cicd-project/pom.xml"
+    }
+
     stages {
 
         stage('Clone Code') {
@@ -15,88 +20,81 @@ pipeline {
             }
         }
 
-        stage('Skip AI Loop') {
+        stage('Build with Maven') {
             steps {
                 script {
-                    def msg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
-                    echo "Last commit message: ${msg}"
 
-                    if (msg.contains("[ai]")) {
-                        echo "AI commit detected → stopping loop"
-                        currentBuild.result = 'SUCCESS'
-                        return
+                    sh """
+                    mkdir -p ${PROJECT_PATH}/reports
+
+                    echo "🚀 Running Maven Build..."
+
+                    mvn -f ${POM_PATH} clean install -U | tee ${PROJECT_PATH}/build.log
+                    """
+
+                    def log = readFile "${PROJECT_PATH}/build.log"
+
+                    echo "===== BUILD LOG START ====="
+                    echo log
+                    echo "===== BUILD LOG END ====="
+
+                    // reset flag
+                    sh "rm -f ${PROJECT_PATH}/build_failed || true"
+
+                    if (log.contains("BUILD FAILURE")) {
+                        writeFile file: "${PROJECT_PATH}/build_failed", text: 'failed'
+                        echo "❌ Build Failed → flag created"
+                    } else {
+                        echo "✅ Build Passed"
                     }
                 }
             }
         }
 
-        // 🔥 BUILD (NO WRONG PATH)
-
-
-                stage('Build with Maven') {
-    steps {
-        script {
-            sh '''
-            echo "📂 Current Workspace:"
-            pwd
-            ls -l
-
-            echo "📂 Navigating to Project..."
-            cd ai-projects/multi-agents-cicd-project
-
-            ls -l
-
-            mkdir -p reports
-
-            mvn clean install -U | tee build.log
-            '''
-
-            def log = readFile 'ai-projects/multi-agents-cicd-project/build.log'
-
-            echo "===== BUILD LOG START ====="
-            echo log
-            echo "===== BUILD LOG END ====="
-
-            if (log.contains("BUILD FAILURE")) {
-                writeFile file: 'ai-projects/multi-agents-cicd-project/build_failed', text: 'failed'
-                error("❌ Build Failed")
-            } else {
-                echo "✅ Build Passed"
-            }
-        }
-    }
-}
-
-
-
-
-
-
-        // 🤖 PROJECT AGENT
         stage('Project Agent') {
             steps {
-                sh 'python3 agents/project_agent.py || python agents/project_agent.py'
+                sh """
+                echo "🤖 Project Agent..."
+
+                if command -v python3 >/dev/null 2>&1; then
+                    python3 ${PROJECT_PATH}/agents/project_agent.py
+                else
+                    python ${PROJECT_PATH}/agents/project_agent.py
+                fi
+                """
             }
         }
 
-        // 🔐 SECURITY AGENT
         stage('Security Agent') {
             steps {
-                sh 'python3 agents/security_agent.py || python agents/security_agent.py'
+                sh """
+                echo "🔐 Security Agent..."
+
+                if command -v python3 >/dev/null 2>&1; then
+                    python3 ${PROJECT_PATH}/agents/security_agent.py
+                else
+                    python ${PROJECT_PATH}/agents/security_agent.py
+                fi
+                """
             }
         }
 
-        // 🧠 AI DECISION
         stage('AI Decision Agent') {
             steps {
                 script {
-                    def status = sh(script: '''
-                        python3 ai_agent.py || python ai_agent.py
-                    ''', returnStatus: true)
+                    def status = sh(script: """
+                    echo "🧠 AI Decision..."
+
+                    if command -v python3 >/dev/null 2>&1; then
+                        python3 ${PROJECT_PATH}/ai_agent.py
+                    else
+                        python ${PROJECT_PATH}/ai_agent.py
+                    fi
+                    """, returnStatus: true)
 
                     if (status != 0) {
                         echo "🚨 AI rejected build"
-                        writeFile file: 'build_failed', text: 'failed'
+                        writeFile file: "${PROJECT_PATH}/build_failed", text: 'failed'
                     } else {
                         echo "✅ AI approved build"
                     }
@@ -104,11 +102,10 @@ pipeline {
             }
         }
 
-        // 🤖 AUTO FIX
         stage('AI Fix') {
             when {
                 expression {
-                    return fileExists('build_failed')
+                    return fileExists("${PROJECT_PATH}/build_failed")
                 }
             }
             steps {
@@ -121,8 +118,12 @@ pipeline {
                         passwordVariable: 'GIT_PASS'
                     )]) {
 
-                        sh '''
-                        python3 ai_agent.py || python ai_agent.py
+                        sh """
+                        if command -v python3 >/dev/null 2>&1; then
+                            python3 ${PROJECT_PATH}/ai_agent.py
+                        else
+                            python ${PROJECT_PATH}/ai_agent.py
+                        fi
 
                         git config user.email "jenkins@ai.com"
                         git config user.name "Jenkins AI Bot"
@@ -136,22 +137,23 @@ pipeline {
                           git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
                           git push origin main
                         fi
-                        '''
+                        """
                     }
                 }
             }
         }
 
-        // 🔁 REBUILD
         stage('Rebuild After Fix') {
             when {
                 expression {
-                    return fileExists('build_failed')
+                    return fileExists("${PROJECT_PATH}/build_failed")
                 }
             }
             steps {
                 script {
-                    def status = sh(script: 'mvn clean install -U', returnStatus: true)
+                    def status = sh(script: """
+                        mvn -f ${POM_PATH} clean install -U
+                    """, returnStatus: true)
 
                     if (status != 0) {
                         error("❌ Build still failing after AI fix")
@@ -165,13 +167,7 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: 'reports/*.json', allowEmptyArchive: true
-        }
-        success {
-            echo "🎉 Multi-Agent CI/CD Success"
-        }
-        failure {
-            echo "❌ Pipeline Failed"
+            archiveArtifacts artifacts: "${PROJECT_PATH}/reports/*.json", allowEmptyArchive: true
         }
     }
 }

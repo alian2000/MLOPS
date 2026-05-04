@@ -1,32 +1,17 @@
 import json
 
-log_file = "build.log"
+BASE = "ai-projects/multi-agents-cicd-project"
 
-report = {
-    "status": "SUCCESS",
-    "errors": [],
-    "warnings": []
-}
+report = {"status": "SUCCESS", "errors": []}
 
-with open(log_file, "r", errors="ignore") as f:
+with open(f"{BASE}/build.log", "r", errors="ignore") as f:
     for line in f:
-        line = line.strip()
-
-        if "BUILD FAILURE" in line:
+        if "BUILD FAILURE" in line or "[ERROR]" in line:
             report["status"] = "FAILED"
-            report["errors"].append(line)
+            report["errors"].append(line.strip())
 
-        elif "[ERROR]" in line:
-            report["errors"].append(line)
-
-        elif "[WARNING]" in line:
-            report["warnings"].append(line)
-
-# Save report
-with open("reports/project.json", "w") as f:
+with open(f"{BASE}/reports/project.json", "w") as f:
     json.dump(report, f, indent=4)
-
-print("🤖 Project Agent Done:", report)
 
 if report["status"] == "FAILED":
     exit(1)
