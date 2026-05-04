@@ -1,0 +1,78 @@
+pipeline {
+    agent any
+
+    environment {
+        NVD_API_KEY = credentials('nvd-api-key') // Jenkins credentials me store hona chahiye
+    }
+
+    tools {
+        maven 'Maven3'   // optional (agar Maven project hai)
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', 
+                    url: 'https://github.com/your-repo.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean install -DskipTests'
+            }
+        }
+
+        stage('OWASP Dependency Check (CLI)') {
+            steps {
+                sh '''
+                echo "Starting OWASP Scan..."
+
+                dependency-check.sh \
+                --project "MyApp" \
+                --scan . \
+                --format ALL \
+                --out ./dc-report \
+                --data ./dc-data \
+                --nvdApiKey $NVD_API_KEY
+
+                echo "OWASP Scan Completed"
+                '''
+            }
+        }
+
+        stage('Verify OWASP Report') {
+            steps {
+                sh '''
+                echo "Listing generated reports..."
+                ls -la dc-report || echo "Report folder not found!"
+                '''
+            }
+        }
+
+        stage('Archive Report') {
+            steps {
+                archiveArtifacts artifacts: 'dc-report/**', fingerprint: true
+            }
+        }
+
+        stage('Publish Report (Optional)') {
+            steps {
+                dependencyCheckPublisher pattern: 'dc-report/dependency-check-report.xml'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline completed"
+        }
+        success {
+            echo "Build SUCCESS ✅"
+        }
+        failure {
+            echo "Build FAILED ❌"
+        }
+    }
+}
