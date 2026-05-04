@@ -1,1 +1,7 @@
-{"status": "REJECTED"}
+{
+    "status": "REJECTED",
+    "reason": [
+        "Build failure",
+        "Invalid log4j version (not found in Maven repo)"
+    ]
+}
