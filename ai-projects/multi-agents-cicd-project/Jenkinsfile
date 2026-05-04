@@ -31,28 +31,46 @@ pipeline {
         }
 
         // 🔥 BUILD (NO WRONG PATH)
-        stage('Build with Maven') {
-            steps {
-                script {
-                    sh '''
-                    mkdir -p reports
-                    mvn clean install -U | tee build.log
-                    '''
 
-                    def log = readFile 'build.log'
-                    echo "===== BUILD LOG START ====="
-                    echo log
-                    echo "===== BUILD LOG END ====="
 
-                    if (log.contains("BUILD FAILURE")) {
-                        writeFile file: 'build_failed', text: 'failed'
-                        error("❌ Build Failed")
-                    } else {
-                        echo "✅ Build Passed"
-                    }
-                }
+                stage('Build with Maven') {
+    steps {
+        script {
+            sh '''
+            echo "📂 Current Workspace:"
+            pwd
+            ls -l
+
+            echo "📂 Navigating to Project..."
+            cd ai-projects/multi-agents-cicd-project
+
+            ls -l
+
+            mkdir -p reports
+
+            mvn clean install -U | tee build.log
+            '''
+
+            def log = readFile 'ai-projects/multi-agents-cicd-project/build.log'
+
+            echo "===== BUILD LOG START ====="
+            echo log
+            echo "===== BUILD LOG END ====="
+
+            if (log.contains("BUILD FAILURE")) {
+                writeFile file: 'ai-projects/multi-agents-cicd-project/build_failed', text: 'failed'
+                error("❌ Build Failed")
+            } else {
+                echo "✅ Build Passed"
             }
         }
+    }
+}
+
+
+
+
+
 
         // 🤖 PROJECT AGENT
         stage('Project Agent') {
