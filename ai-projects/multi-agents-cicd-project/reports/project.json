@@ -1,4 +1,1 @@
-{
-    "status": "SUCCESS",
-    "errors": []
-}
+{"status": "FAILED", "errors": ["Build failure"]}

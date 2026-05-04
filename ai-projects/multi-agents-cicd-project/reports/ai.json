@@ -1,6 +1,1 @@
-{
-    "status": "REJECTED",
-    "reason": [
-        "Demo security issue: hardcoded credential detected"
-    ]
-}
+{"status": "REJECTED"}
