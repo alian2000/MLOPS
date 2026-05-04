@@ -79,7 +79,7 @@ pipeline {
                         ls -la dc-report || true
                         '''
 
-[O                        def reportExists = fileExists(
+                        def reportExists = fileExists(
                             'owasp_scan_fix_crtical_high_vulnerabities/ai-devops-maven/dc-report/dependency-check-report.json'
                         )
 
