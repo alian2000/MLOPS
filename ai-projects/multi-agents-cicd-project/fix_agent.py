@@ -1,16 +1,31 @@
+# fix_agent.py
+
+import os
+import re
+
 BASE = "ai-projects/multi-agents-cicd-project"
 
-print("🔧 Fixing pom.xml...")
+print("🔧 Fix Agent Running...")
 
-pom = f"{BASE}/pom.xml"
+pom_file = f"{BASE}/pom.xml"
 
-with open(pom, "r") as f:
-    data = f.read()
+if os.path.exists(pom_file):
 
-if "2.14.1" in data:
-    data = data.replace("2.14.1", "2.17.2")
+    with open(pom_file, "r") as f:
+        content = f.read()
 
-    with open(pom, "w") as f:
-        f.write(data)
+    # 🔥 replace ANY log4j version with safe version
+    new_content = re.sub(
+        r'<artifactId>log4j-core</artifactId>\s*<version>.*?</version>',
+        '<artifactId>log4j-core</artifactId>\n      <version>2.17.2</version>',
+        content
+    )
 
-    print("✅ Fixed vulnerable dependency")
+    if new_content != content:
+        with open(pom_file, "w") as f:
+            f.write(new_content)
+
+        print("✅ Fixed: log4j version upgraded to 2.17.2")
+
+    else:
+        print("ℹ️ No changes needed")
