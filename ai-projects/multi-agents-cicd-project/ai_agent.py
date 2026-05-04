@@ -13,7 +13,6 @@ with open(f"{BASE}/reports/project.json") as f:
 with open(f"{BASE}/reports/security.json") as f:
     security = json.load(f)
 
-# Logic
 if project["status"] == "FAILED":
     decision["status"] = "REJECTED"
     decision["reason"].append("Build failure detected")

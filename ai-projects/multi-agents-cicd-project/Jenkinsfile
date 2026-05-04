@@ -12,6 +12,7 @@ pipeline {
 
     stages {
 
+        // 📥 CLONE
         stage('Clone Code') {
             steps {
                 git branch: 'main',
@@ -20,6 +21,18 @@ pipeline {
             }
         }
 
+        // 🔍 DEBUG (optional but helpful)
+        stage('Debug Workspace') {
+            steps {
+                sh '''
+                echo "📂 WORKSPACE:"
+                pwd
+                ls -R
+                '''
+            }
+        }
+
+        // 🚀 BUILD
         stage('Build with Maven') {
             steps {
                 script {
@@ -28,7 +41,6 @@ pipeline {
                     mkdir -p ${PROJECT_PATH}/reports
 
                     echo "🚀 Running Maven Build..."
-
                     mvn -f ${POM_PATH} clean install -U | tee ${PROJECT_PATH}/build.log
                     """
 
@@ -43,7 +55,7 @@ pipeline {
 
                     if (log.contains("BUILD FAILURE")) {
                         writeFile file: "${PROJECT_PATH}/build_failed", text: 'failed'
-                        echo "❌ Build Failed → flag created"
+                        echo "❌ Build Failed"
                     } else {
                         echo "✅ Build Passed"
                     }
@@ -51,62 +63,41 @@ pipeline {
             }
         }
 
-
-
-
-       stage('Project Agent') {
-    steps {
-        script {
-            echo "🤖 Running Project Agent..."
-
-            sh """
-            if command -v python3 >/dev/null 2>&1; then
-                python3 ${PROJECT_PATH}/agents/project_agent.py || true
-            else
-                python ${PROJECT_PATH}/agents/project_agent.py || true
-            fi
-            """
-        }
-    }
-}
-
-
-
-
-       stage('Security Agent') {
-    steps {
-        script {
-            echo "🔐 Running Security Agent..."
-
-            def status = sh(script: """
-                if command -v python3 >/dev/null 2>&1; then
-                    python3 ${PROJECT_PATH}/agents/security_agent.py
-                else
-                    python ${PROJECT_PATH}/agents/security_agent.py
-                fi
-            """, returnStatus: true)
-
-            if (status != 0) {
-                echo "⚠️ Security issues detected (continuing pipeline)"
-            } else {
-                echo "✅ No security issues"
+        // 🤖 PROJECT AGENT
+        stage('Project Agent') {
+            steps {
+                script {
+                    sh """
+                    echo "🤖 Running Project Agent..."
+                    python3 ${PROJECT_PATH}/agents/project_agent.py || true
+                    """
+                }
             }
         }
-    }
-}
 
+        // 🔐 SECURITY AGENT
+        stage('Security Agent') {
+            steps {
+                script {
+                    def status = sh(script: """
+                        echo "🔐 Running Security Agent..."
+                        python3 ${PROJECT_PATH}/agents/security_agent.py
+                    """, returnStatus: true)
 
+                    if (status != 0) {
+                        echo "⚠️ Security issues found (continuing...)"
+                    }
+                }
+            }
+        }
+
+        // 🧠 AI DECISION
         stage('AI Decision Agent') {
             steps {
                 script {
                     def status = sh(script: """
-                    echo "🧠 AI Decision..."
-
-                    if command -v python3 >/dev/null 2>&1; then
+                        echo "🧠 AI Decision..."
                         python3 ${PROJECT_PATH}/ai_agent.py
-                    else
-                        python ${PROJECT_PATH}/ai_agent.py
-                    fi
                     """, returnStatus: true)
 
                     if (status != 0) {
@@ -119,6 +110,7 @@ pipeline {
             }
         }
 
+        // 🔧 AI FIX
         stage('AI Fix') {
             when {
                 expression {
@@ -127,7 +119,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "🤖 Running AI Fix..."
+                    echo "🤖 Running REAL AI Fix..."
 
                     withCredentials([usernamePassword(
                         credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
@@ -135,12 +127,10 @@ pipeline {
                         passwordVariable: 'GIT_PASS'
                     )]) {
 
-                        sh """
-                        if command -v python3 >/dev/null 2>&1; then
-                            python3 ${PROJECT_PATH}/ai_agent.py
-                        else
-                            python ${PROJECT_PATH}/ai_agent.py
-                        fi
+                        sh '''
+                        echo "🔧 Executing Fix Agent..."
+
+                        python3 ai-projects/multi-agents-cicd-project/fix_agent.py || true
 
                         git config user.email "jenkins@ai.com"
                         git config user.name "Jenkins AI Bot"
@@ -148,18 +138,25 @@ pipeline {
                         git add .
 
                         if git diff --cached --quiet; then
-                          echo "No changes"
+                          echo "No changes to commit"
                         else
-                          git commit -m "[ai] auto-fix issue"
-                          git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
-                          git push origin main
+                          git commit -m "[ai] auto-fix applied"
                         fi
-                        """
+                        '''
+
+                        // 🔐 SAFE PUSH (no warning)
+                        withEnv(["GIT_URL=https://${GIT_USER}:${GIT_PASS}@github.com/Rohitcs09/MLOPS.git"]) {
+                            sh '''
+                            git remote set-url origin $GIT_URL
+                            git push origin main
+                            '''
+                        }
                     }
                 }
             }
         }
 
+        // 🔁 REBUILD
         stage('Rebuild After Fix') {
             when {
                 expression {
@@ -168,14 +165,18 @@ pipeline {
             }
             steps {
                 script {
+                    echo "🔁 Rebuilding after fix..."
+
                     def status = sh(script: """
                         mvn -f ${POM_PATH} clean install -U
                     """, returnStatus: true)
 
                     if (status != 0) {
-                        error("❌ Build still failing after AI fix")
+                        error("❌ Build still failing after fix")
                     } else {
                         echo "✅ Build Fixed Successfully"
+
+                        sh "rm -f ${PROJECT_PATH}/build_failed"
                     }
                 }
             }
@@ -185,6 +186,12 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: "${PROJECT_PATH}/reports/*.json", allowEmptyArchive: true
+        }
+        success {
+            echo "🎉 Multi-Agent CI/CD SUCCESS"
+        }
+        failure {
+            echo "❌ Pipeline FAILED"
         }
     }
 }

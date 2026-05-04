@@ -11,13 +11,13 @@ with open(f"{BASE}/build.log", "r", errors="ignore") as f:
 if "password" in data:
     report["issues"].append("Password found in logs")
 
-# 🔥 DEMO ONLY FIRST TIME
-flag_file = f"{BASE}/demo_triggered"
+# 🔥 trigger only once
+flag = f"{BASE}/demo_flag"
 
-if not os.path.exists(flag_file):
+if not os.path.exists(flag):
     report["issues"].append("Demo security issue: hardcoded credential detected")
     
-    with open(flag_file, "w") as f:
+    with open(flag, "w") as f:
         f.write("done")
 
 with open(f"{BASE}/reports/security.json", "w") as f:
