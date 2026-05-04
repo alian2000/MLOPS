@@ -40,11 +40,25 @@ pipeline {
             }
         }
 
-        stage('Project Agent') {
-            steps {
-                sh "python3 ${PROJECT_PATH}/agents/project_agent.py || true"
-            }
-        }
+
+       stage('Project Agent') {
+    steps {
+        sh '''
+        echo "📂 Checking path..."
+        pwd
+        ls -R
+
+        echo "🤖 Running Project Agent..."
+
+        if [ -f ai-projects/multi-agents-cicd-project/agents/project_agent.py ]; then
+            python3 ai-projects/multi-agents-cicd-project/agents/project_agent.py || true
+        else
+            echo "❌ project_agent.py NOT FOUND"
+        fi
+        '''
+    }
+}
+
 
         stage('Security Agent') {
             steps {
