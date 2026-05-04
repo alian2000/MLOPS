@@ -1,1 +1,7 @@
-{"status": "FAILED", "errors": ["Build failure"]}
+{
+    "status": "FAILED",
+    "errors": [
+        "Build failure",
+        "Dependency resolution failed"
+    ]
+}
