@@ -30,8 +30,8 @@ pipeline {
             }
         }
 
-        // 🔥 UPDATED STAGE (CLI BASED OWASP)
-        stage('Build + OWASP CLI Scan') {
+        // 🚀 BUILD + OWASP (DOCKER)
+        stage('Build + OWASP Scan (Docker)') {
             steps {
                 script {
 
@@ -42,48 +42,41 @@ pipeline {
                         withCredentials([string(credentialsId: 'NVD_API_KEY', variable: 'NVD_API_KEY')]) {
 
                             sh '''
-                            set +e
+                            set -e
 
                             echo "📦 Maven Version:"
                             mvn -version
 
                             cd owasp_scan_fix_crtical_high_vulnerabities/ai-devops-maven
 
-                            echo "🚀 Build..."
+                            echo "🚀 Building Project..."
                             mvn clean install -DskipTests -U
 
-                            echo "⬇️ Downloading OWASP CLI (if not exists)..."
-                            if [ ! -d "dependency-check" ]; then
-                                curl -L -o dc.zip https://github.com/jeremylong/DependencyCheck/releases/latest/download/dependency-check-9.0.9-release.zip
-                                unzip dc.zip
-                                mv dependency-check* dependency-check
-                            fi
+                            echo "🐳 Running OWASP via Docker..."
 
-                            chmod +x dependency-check/bin/dependency-check.sh
+                            docker run --rm \
+                              -v $(pwd):/src \
+                              -v $(pwd)/dc-data:/usr/share/dependency-check/data \
+                              owasp/dependency-check:latest \
+                              --project "MyApp" \
+                              --scan /src \
+                              --format JSON \
+                              --out /src/dc-report \
+                              --nvdApiKey $NVD_API_KEY
 
-                            echo "🔍 Running OWASP CLI Scan..."
-                            dependency-check/bin/dependency-check.sh \
-                                --project "MyApp" \
-                                --scan . \
-                                --format JSON \
-                                --out ./dc-report \
-                                --nvdApiKey $NVD_API_KEY
-
-                            echo "📂 Report Folder:"
+                            echo "📂 Checking Report..."
                             ls -la dc-report || true
-
-                            set -e
                             '''
                         }
                     }
 
-                    // ✅ Check report (CLI path)
+                    // ✅ Report check
                     def reportExists = fileExists(
                         'owasp_scan_fix_crtical_high_vulnerabities/ai-devops-maven/dc-report/dependency-check-report.json'
                     )
 
                     if (!reportExists) {
-                        echo "⚠️ OWASP report NOT generated (forcing AI run)"
+                        echo "⚠️ OWASP report NOT generated"
                         writeFile file: 'owasp_scan_fix_crtical_high_vulnerabities/build_failed', text: 'no_report'
                     } else {
                         echo "✅ OWASP report generated"
@@ -93,7 +86,7 @@ pipeline {
             }
         }
 
-        // 🤖 AI SECURITY FIX (unchanged)
+        // 🤖 AI SECURITY FIX
         stage('AI Security Fix') {
             when {
                 expression {
