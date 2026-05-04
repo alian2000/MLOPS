@@ -1,0 +1,5 @@
+{
+    "issues": [
+        "Demo security issue: hardcoded credential detected"
+    ]
+}
