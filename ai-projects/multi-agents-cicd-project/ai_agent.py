@@ -2,29 +2,15 @@ import json
 
 BASE = "ai-projects/multi-agents-cicd-project"
 
-decision = {
-    "status": "APPROVED",
-    "reason": []
-}
+decision = {"status": "APPROVED"}
 
-with open(f"{BASE}/reports/project.json") as f:
-    project = json.load(f)
+project = json.load(open(f"{BASE}/reports/project.json"))
+security = json.load(open(f"{BASE}/reports/security.json"))
 
-with open(f"{BASE}/reports/security.json") as f:
-    security = json.load(f)
-
-if project["status"] == "FAILED":
+if project["status"] == "FAILED" or security["issues"]:
     decision["status"] = "REJECTED"
-    decision["reason"].append("Build failure detected")
 
-if security["issues"]:
-    decision["status"] = "REJECTED"
-    decision["reason"].extend(security["issues"])
-
-with open(f"{BASE}/reports/ai.json", "w") as f:
-    json.dump(decision, f, indent=4)
-
-print("🧠 AI Decision:", decision)
+json.dump(decision, open(f"{BASE}/reports/ai.json", "w"))
 
 if decision["status"] == "REJECTED":
     exit(1)

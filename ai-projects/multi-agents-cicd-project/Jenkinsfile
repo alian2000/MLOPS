@@ -12,7 +12,6 @@ pipeline {
 
     stages {
 
-        // 📥 CLONE
         stage('Clone Code') {
             steps {
                 git branch: 'main',
@@ -21,96 +20,52 @@ pipeline {
             }
         }
 
-        // 🔍 DEBUG (optional but helpful)
-        stage('Debug Workspace') {
-            steps {
-                sh '''
-                echo "📂 WORKSPACE:"
-                pwd
-                ls -R
-                '''
-            }
-        }
-
-        // 🚀 BUILD
-        stage('Build with Maven') {
+        stage('Build') {
             steps {
                 script {
-
                     sh """
                     mkdir -p ${PROJECT_PATH}/reports
 
-                    echo "🚀 Running Maven Build..."
                     mvn -f ${POM_PATH} clean install -U | tee ${PROJECT_PATH}/build.log
                     """
 
                     def log = readFile "${PROJECT_PATH}/build.log"
 
-                    echo "===== BUILD LOG START ====="
-                    echo log
-                    echo "===== BUILD LOG END ====="
-
-                    // reset flag
                     sh "rm -f ${PROJECT_PATH}/build_failed || true"
 
                     if (log.contains("BUILD FAILURE")) {
                         writeFile file: "${PROJECT_PATH}/build_failed", text: 'failed'
-                        echo "❌ Build Failed"
-                    } else {
-                        echo "✅ Build Passed"
                     }
                 }
             }
         }
 
-        // 🤖 PROJECT AGENT
         stage('Project Agent') {
             steps {
-                script {
-                    sh """
-                    echo "🤖 Running Project Agent..."
-                    python3 ${PROJECT_PATH}/agents/project_agent.py || true
-                    """
-                }
+                sh "python3 ${PROJECT_PATH}/agents/project_agent.py || true"
             }
         }
 
-        // 🔐 SECURITY AGENT
         stage('Security Agent') {
             steps {
                 script {
-                    def status = sh(script: """
-                        echo "🔐 Running Security Agent..."
-                        python3 ${PROJECT_PATH}/agents/security_agent.py
-                    """, returnStatus: true)
-
-                    if (status != 0) {
-                        echo "⚠️ Security issues found (continuing...)"
-                    }
+                    sh "python3 ${PROJECT_PATH}/agents/security_agent.py || true"
                 }
             }
         }
 
-        // 🧠 AI DECISION
-        stage('AI Decision Agent') {
+        stage('AI Decision') {
             steps {
                 script {
-                    def status = sh(script: """
-                        echo "🧠 AI Decision..."
-                        python3 ${PROJECT_PATH}/ai_agent.py
-                    """, returnStatus: true)
+                    def status = sh(script: "python3 ${PROJECT_PATH}/ai_agent.py", returnStatus: true)
 
                     if (status != 0) {
-                        echo "🚨 AI rejected build"
                         writeFile file: "${PROJECT_PATH}/build_failed", text: 'failed'
-                    } else {
-                        echo "✅ AI approved build"
                     }
                 }
             }
         }
 
-        // 🔧 AI FIX
         stage('AI Fix') {
             when {
                 expression {
@@ -119,32 +74,22 @@ pipeline {
             }
             steps {
                 script {
-                    echo "🤖 Running REAL AI Fix..."
-
                     withCredentials([usernamePassword(
                         credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
                         usernameVariable: 'GIT_USER',
                         passwordVariable: 'GIT_PASS'
                     )]) {
 
-                        sh '''
-                        echo "🔧 Executing Fix Agent..."
-
-                        python3 ai-projects/multi-agents-cicd-project/fix_agent.py || true
+                        sh """
+                        python3 ${PROJECT_PATH}/fix_agent.py
 
                         git config user.email "jenkins@ai.com"
                         git config user.name "Jenkins AI Bot"
 
                         git add .
+                        git commit -m "[ai] auto fix" || true
+                        """
 
-                        if git diff --cached --quiet; then
-                          echo "No changes to commit"
-                        else
-                          git commit -m "[ai] auto-fix applied"
-                        fi
-                        '''
-
-                        // 🔐 SAFE PUSH (no warning)
                         withEnv(["GIT_URL=https://${GIT_USER}:${GIT_PASS}@github.com/Rohitcs09/MLOPS.git"]) {
                             sh '''
                             git remote set-url origin $GIT_URL
@@ -156,42 +101,15 @@ pipeline {
             }
         }
 
-        // 🔁 REBUILD
-        stage('Rebuild After Fix') {
+        stage('Rebuild') {
             when {
                 expression {
                     return fileExists("${PROJECT_PATH}/build_failed")
                 }
             }
             steps {
-                script {
-                    echo "🔁 Rebuilding after fix..."
-
-                    def status = sh(script: """
-                        mvn -f ${POM_PATH} clean install -U
-                    """, returnStatus: true)
-
-                    if (status != 0) {
-                        error("❌ Build still failing after fix")
-                    } else {
-                        echo "✅ Build Fixed Successfully"
-
-                        sh "rm -f ${PROJECT_PATH}/build_failed"
-                    }
-                }
+                sh "mvn -f ${POM_PATH} clean install -U"
             }
-        }
-    }
-
-    post {
-        always {
-            archiveArtifacts artifacts: "${PROJECT_PATH}/reports/*.json", allowEmptyArchive: true
-        }
-        success {
-            echo "🎉 Multi-Agent CI/CD SUCCESS"
-        }
-        failure {
-            echo "❌ Pipeline FAILED"
         }
     }
 }

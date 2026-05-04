@@ -1,27 +1,17 @@
 import json
-import os
 
 BASE = "ai-projects/multi-agents-cicd-project"
 
 report = {"issues": []}
 
-with open(f"{BASE}/build.log", "r", errors="ignore") as f:
-    data = f.read().lower()
+with open(f"{BASE}/pom.xml") as f:
+    data = f.read()
 
-if "password" in data:
-    report["issues"].append("Password found in logs")
-
-# 🔥 trigger only once
-flag = f"{BASE}/demo_flag"
-
-if not os.path.exists(flag):
-    # removed by fix agent
-    
-    with open(flag, "w") as f:
-        f.write("done")
+if "2.14.1" in data:
+    report["issues"].append("Vulnerable log4j version detected")
 
 with open(f"{BASE}/reports/security.json", "w") as f:
-    json.dump(report, f, indent=4)
+    json.dump(report, f)
 
 if report["issues"]:
     exit(1)

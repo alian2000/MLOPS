@@ -1,24 +1,16 @@
-import os
-
 BASE = "ai-projects/multi-agents-cicd-project"
 
-print("🔧 Fix Agent Running...")
+print("🔧 Fixing pom.xml...")
 
-sec_file = f"{BASE}/agents/security_agent.py"
+pom = f"{BASE}/pom.xml"
 
-if os.path.exists(sec_file):
-    with open(sec_file, "r") as f:
-        content = f.read()
+with open(pom, "r") as f:
+    data = f.read()
 
-    if "Demo security issue" in content:
-        content = content.replace(
-            'report["issues"].append("Demo security issue: hardcoded credential detected")',
-            '# removed by fix agent'
-        )
+if "2.14.1" in data:
+    data = data.replace("2.14.1", "2.17.2")
 
-        with open(sec_file, "w") as f:
-            f.write(content)
+    with open(pom, "w") as f:
+        f.write(data)
 
-        print("✅ Demo issue removed")
-    else:
-        print("ℹ️ No demo issue found")
+    print("✅ Fixed vulnerable dependency")
