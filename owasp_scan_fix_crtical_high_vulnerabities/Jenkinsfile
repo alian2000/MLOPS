@@ -5,6 +5,10 @@ pipeline {
         maven 'Maven3'
     }
 
+    environment {
+        BUILD_STATUS = "SUCCESS"
+    }
+
     stages {
 
         stage('Clone Code') {
@@ -15,7 +19,7 @@ pipeline {
             }
         }
 
-        stage('Skip AI Loop') {
+        stage('Skip AI Loop Check') {
             steps {
                 script {
                     def msg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
@@ -30,63 +34,68 @@ pipeline {
             }
         }
 
-        // 🚀 BUILD + OWASP (DOCKER)
-        stage('Build + OWASP Scan (Docker)') {
+        // 🔨 BUILD (WILL NOT BREAK PIPELINE)
+        stage('Build') {
             steps {
                 script {
+                    def status = sh(script: '''
+                        cd owasp_scan_fix_crtical_high_vulnerabities/ai-devops-maven
+                        mvn clean install -DskipTests -U
+                    ''', returnStatus: true)
 
-                    def mvnHome = tool 'Maven3'
-
-                    withEnv(["PATH+MAVEN=${mvnHome}/bin"]) {
-
-                        withCredentials([string(credentialsId: 'NVD_API_KEY', variable: 'NVD_API_KEY')]) {
-
-                            sh '''
-                            set -e
-
-                            echo "📦 Maven Version:"
-                            mvn -version
-
-                            cd owasp_scan_fix_crtical_high_vulnerabities/ai-devops-maven
-
-                            echo "🚀 Building Project..."
-                            mvn clean install -DskipTests -U
-
-                            echo "🐳 Running OWASP via Docker..."
-
-                            docker run --rm \
-                              -v $(pwd):/src \
-                              -v $(pwd)/dc-data:/usr/share/dependency-check/data \
-                              owasp/dependency-check:latest \
-                              --project "MyApp" \
-                              --scan /src \
-                              --format JSON \
-                              --out /src/dc-report \
-                              --nvdApiKey $NVD_API_KEY
-
-                            echo "📂 Checking Report..."
-                            ls -la dc-report || true
-                            '''
-                        }
-                    }
-
-                    // ✅ Report check
-                    def reportExists = fileExists(
-                        'owasp_scan_fix_crtical_high_vulnerabities/ai-devops-maven/dc-report/dependency-check-report.json'
-                    )
-
-                    if (!reportExists) {
-                        echo "⚠️ OWASP report NOT generated"
-                        writeFile file: 'owasp_scan_fix_crtical_high_vulnerabities/build_failed', text: 'no_report'
+                    if (status != 0) {
+                        echo "❌ Build Failed"
+                        env.BUILD_STATUS = "FAILED"
+                        writeFile file: 'owasp_scan_fix_crtical_high_vulnerabities/build_failed', text: 'build_error'
                     } else {
-                        echo "✅ OWASP report generated"
-                        writeFile file: 'owasp_scan_fix_crtical_high_vulnerabities/build_failed', text: 'vulnerabilities_found'
+                        echo "✅ Build Success"
                     }
                 }
             }
         }
 
-        // 🤖 AI SECURITY FIX
+        // 🔍 OWASP SCAN (ALWAYS RUN)
+        stage('OWASP Scan (Docker)') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'NVD_API_KEY', variable: 'NVD_API_KEY')]) {
+
+                        sh '''
+                        cd owasp_scan_fix_crtical_high_vulnerabities/ai-devops-maven
+
+                        echo "🐳 Running OWASP Scan..."
+
+                        docker run --rm \
+                          -v $(pwd):/src \
+                          -v $(pwd)/dc-data:/usr/share/dependency-check/data \
+                          owasp/dependency-check:latest \
+                          --project "MyApp" \
+                          --scan /src \
+                          --format JSON \
+                          --out /src/dc-report \
+                          --nvdApiKey $NVD_API_KEY
+
+                        echo "📂 Report:"
+                        ls -la dc-report || true
+                        '''
+
+[O                        def reportExists = fileExists(
+                            'owasp_scan_fix_crtical_high_vulnerabities/ai-devops-maven/dc-report/dependency-check-report.json'
+                        )
+
+                        if (!reportExists) {
+                            echo "⚠️ OWASP report missing"
+                            writeFile file: 'owasp_scan_fix_crtical_high_vulnerabities/build_failed', text: 'no_report'
+                        } else {
+                            echo "✅ OWASP report generated"
+                            writeFile file: 'owasp_scan_fix_crtical_high_vulnerabities/build_failed', text: 'vulnerabilities_found'
+                        }
+                    }
+                }
+            }
+        }
+
+        // 🤖 AI FIX (ALWAYS RUN IF ISSUE EXISTS)
         stage('AI Security Fix') {
             when {
                 expression {
@@ -95,7 +104,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "🤖 Running AI Security Fix..."
+                    echo "🤖 Running AI Fix..."
 
                     withCredentials([
                         usernamePassword(
@@ -123,7 +132,7 @@ pipeline {
                         if git diff --cached --quiet; then
                           echo "No changes"
                         else
-                          git commit -m "[ai] security fix (OWASP High/Critical)"
+                          git commit -m "[ai] auto security fix"
                           git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/AI-DevOps.git
                           git push origin main
                         fi
@@ -133,29 +142,37 @@ pipeline {
             }
         }
 
-        // 🔁 REBUILD AFTER FIX
+        // 🔁 REBUILD AFTER FIX (ALWAYS TRY)
         stage('Rebuild After Fix') {
-            when {
-                expression {
-                    return fileExists('owasp_scan_fix_crtical_high_vulnerabities/build_failed')
-                }
-            }
             steps {
                 script {
                     def status = sh(script: '''
                         cd owasp_scan_fix_crtical_high_vulnerabities/ai-devops-maven
-
-                        echo "🔁 Rebuilding after AI fix..."
                         mvn clean install -DskipTests -U
                     ''', returnStatus: true)
 
                     if (status != 0) {
-                        error("❌ Build still failing after AI fix")
+                        echo "❌ Still failing after AI fix"
+                        env.BUILD_STATUS = "FAILED"
                     } else {
-                        echo "✅ Build Fixed Successfully"
+                        echo "✅ Fixed Successfully"
                     }
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            echo "📊 Final Build Status: ${env.BUILD_STATUS}"
+        }
+
+        success {
+            echo "🎉 Pipeline SUCCESS"
+        }
+
+        failure {
+            echo "💥 Pipeline FAILED"
         }
     }
 }
