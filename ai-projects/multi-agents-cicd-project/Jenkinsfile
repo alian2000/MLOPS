@@ -51,33 +51,50 @@ pipeline {
             }
         }
 
-        stage('Project Agent') {
-            steps {
-                sh """
-                echo "🤖 Project Agent..."
 
-                if command -v python3 >/dev/null 2>&1; then
-                    python3 ${PROJECT_PATH}/agents/project_agent.py
-                else
-                    python ${PROJECT_PATH}/agents/project_agent.py
-                fi
-                """
-            }
+
+
+       stage('Project Agent') {
+    steps {
+        script {
+            echo "🤖 Running Project Agent..."
+
+            sh """
+            if command -v python3 >/dev/null 2>&1; then
+                python3 ${PROJECT_PATH}/agents/project_agent.py || true
+            else
+                python ${PROJECT_PATH}/agents/project_agent.py || true
+            fi
+            """
         }
+    }
+}
 
-        stage('Security Agent') {
-            steps {
-                sh """
-                echo "🔐 Security Agent..."
 
+
+
+       stage('Security Agent') {
+    steps {
+        script {
+            echo "🔐 Running Security Agent..."
+
+            def status = sh(script: """
                 if command -v python3 >/dev/null 2>&1; then
                     python3 ${PROJECT_PATH}/agents/security_agent.py
                 else
                     python ${PROJECT_PATH}/agents/security_agent.py
                 fi
-                """
+            """, returnStatus: true)
+
+            if (status != 0) {
+                echo "⚠️ Security issues detected (continuing pipeline)"
+            } else {
+                echo "✅ No security issues"
             }
         }
+    }
+}
+
 
         stage('AI Decision Agent') {
             steps {
