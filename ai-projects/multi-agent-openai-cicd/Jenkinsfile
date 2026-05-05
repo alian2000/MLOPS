@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        OPENAI_API_KEY = credentials('Openai_key')
+        OPENAI_API_KEY = credentials('OPENAI_API_KEY')
     }
 
     stages {
