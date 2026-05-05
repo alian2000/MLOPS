@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven3'
+    }
+
+    environment {
+        OPENAI_API_KEY = credentials('openai-key')
+    }
+
+    stages {
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean install -U > build.log || true'
+            }
+        }
+
+        stage('Project Agent') {
+            steps {
+                sh 'python3 agents/project_agent.py'
+            }
+        }
+
+        stage('Security Agent') {
+            steps {
+                sh 'python3 agents/security_agent.py'
+            }
+        }
+
+        stage('Combine Report') {
+            steps {
+                sh '''
+                cat build.log > reports/combined.txt
+                '''
+            }
+        }
+
+        stage('Decision Agent') {
+            steps {
+                sh 'python3 agents/decision_agent.py'
+            }
+        }
+
+        stage('Fix Agent') {
+            when {
+                expression { fileExists('build_failed') }
+            }
+            steps {
+                sh 'python3 agents/fix_agent.py'
+            }
+        }
+    }
+}
