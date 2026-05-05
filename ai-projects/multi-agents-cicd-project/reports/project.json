@@ -1,7 +1,6 @@
 {
     "status": "FAILED",
     "errors": [
-        "Dependency resolution failed",
-        "Build failed"
+        "[ERROR] COMPILATION ERROR : "
     ]
 }

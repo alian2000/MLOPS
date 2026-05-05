@@ -1,7 +1,6 @@
 {
     "status": "REJECTED",
     "reason": [
-        "Dependency resolution failed",
-        "Build failed"
+        "[ERROR] COMPILATION ERROR : "
     ]
 }
