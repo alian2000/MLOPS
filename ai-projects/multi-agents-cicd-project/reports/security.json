@@ -1,5 +1,3 @@
 {
-    "issues": [
-        "Invalid log4j version (not found in Maven repo)"
-    ]
+    "issues": []
 }
