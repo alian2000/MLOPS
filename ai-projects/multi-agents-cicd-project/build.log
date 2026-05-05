@@ -4,18 +4,18 @@
 [INFO] Building ai-cicd 1.0
 [INFO]   from pom.xml
 [INFO] --------------------------------[ jar ]---------------------------------
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/logging/log4j/log4j-core/1.1.1/log4j-core-1.1.1.pom
-[WARNING] The POM for org.apache.logging.log4j:log4j-core:jar:1.1.1 is missing, no dependency information available
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/logging/log4j/log4j-core/1.1.1/log4j-core-1.1.1.jar
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/logging/log4j/log4j-core/1.1.0/log4j-core-1.1.0.pom
+[WARNING] The POM for org.apache.logging.log4j:log4j-core:jar:1.1.0 is missing, no dependency information available
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/logging/log4j/log4j-core/1.1.0/log4j-core-1.1.0.jar
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  0.896 s
-[INFO] Finished at: 2026-05-05T12:48:47Z
+[INFO] Total time:  1.513 s
+[INFO] Finished at: 2026-05-05T12:50:46Z
 [INFO] ------------------------------------------------------------------------
 [ERROR] Failed to execute goal on project ai-cicd: Could not resolve dependencies for project com.demo:ai-cicd:jar:1.0
-[ERROR] dependency: org.apache.logging.log4j:log4j-core:jar:1.1.1 (compile)
-[ERROR] 	Could not find artifact org.apache.logging.log4j:log4j-core:jar:1.1.1 in central (https://repo.maven.apache.org/maven2)
+[ERROR] dependency: org.apache.logging.log4j:log4j-core:jar:1.1.0 (compile)
+[ERROR] 	Could not find artifact org.apache.logging.log4j:log4j-core:jar:1.1.0 in central (https://repo.maven.apache.org/maven2)
 [ERROR] 
 [ERROR] -> [Help 1]
 [ERROR] 
