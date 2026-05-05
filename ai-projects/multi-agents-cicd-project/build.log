@@ -35,37 +35,18 @@
 [INFO] -------------------------------------------------------------
 [ERROR] COMPILATION ERROR : 
 [INFO] -------------------------------------------------------------
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[5,1] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[5,3] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[5,5] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[6,9] > or ',' expected
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[7,3] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[7,5] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[7,7] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[9,1] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[9,4] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[9,7] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[9,49] ';' expected
-[INFO] 11 errors 
+[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[5,46] ';' expected
+[INFO] 1 error
 [INFO] -------------------------------------------------------------
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  10.269 s
-[INFO] Finished at: 2026-05-05T14:19:44Z
+[INFO] Total time:  8.599 s
+[INFO] Finished at: 2026-05-05T14:24:22Z
 [INFO] ------------------------------------------------------------------------
-[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:compile (default-compile) on project ai-cicd: Compilation failure: Compilation failure: 
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[5,1] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[5,3] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[5,5] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[6,9] > or ',' expected
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[7,3] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[7,5] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[7,7] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[9,1] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[9,4] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[9,7] illegal start of expression
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[9,49] ';' expected
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:compile (default-compile) on project ai-cicd: Compilation failure
+[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agents-cicd-project/src/main/java/App.java:[5,46] ';' expected
+[ERROR] 
 [ERROR] -> [Help 1]
 [ERROR] 
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
