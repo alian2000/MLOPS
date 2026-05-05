@@ -19,13 +19,13 @@ pipeline {
 
         stage('Project Agent') {
             steps {
-                sh 'python3 agents/project_agent.py'
+                sh 'python3 ai-projects/multi-agent-openai-cicd/agents/project_agent.py'
             }
         }
 
         stage('Security Agent') {
             steps {
-                sh 'python3 agents/security_agent.py'
+                sh 'python3 ai-projects/multi-agent-openai-cicd/agents/security_agent.py'
             }
         }
 
@@ -39,7 +39,7 @@ pipeline {
 
         stage('Decision Agent') {
             steps {
-                sh 'python3 agents/decision_agent.py'
+                sh 'python3 ai-projects/multi-agent-openai-cicd/agents/decision_agent.py'
             }
         }
 
@@ -48,7 +48,7 @@ pipeline {
                 expression { fileExists('build_failed') }
             }
             steps {
-                sh 'python3 agents/fix_agent.py'
+                sh 'python3 ai-projects/multi-agent-openai-cicd/agents/fix_agent.py'
             }
         }
     }
