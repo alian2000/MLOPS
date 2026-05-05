@@ -44,8 +44,8 @@ if os.path.exists(java_file):
 
     # Fix missing semicolon (demo case)
     code = code.replace(
-        'System.out.println("Hello"',
-        'System.out.println("Hello");'
+        'System.out.println("Hello AI DevOps"',
+        'System.out.println("Hello AI DevOps");'
     )
 
     if code != original:

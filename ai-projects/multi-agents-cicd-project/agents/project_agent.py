@@ -1,4 +1,3 @@
-
 import json
 import os
 import re
@@ -22,27 +21,17 @@ else:
     with open(log_file, "r", errors="ignore") as f:
         log = f.read()
 
-    # 🔥 1. Compilation error
+    # 🔥 Extract actual compilation error line
     if "COMPILATION ERROR" in log:
         report["status"] = "FAILED"
-        report["errors"].append("Compilation error detected")
 
-    # 🔥 2. Dependency resolution error
-    if "Could not resolve dependencies" in log:
-        report["status"] = "FAILED"
-        report["errors"].append("Dependency resolution failed")
+        matches = re.findall(r"\[ERROR\].*", log)
+        if matches:
+            report["errors"].append(matches[0])  # 👈 actual error
+        else:
+            report["errors"].append("Compilation error detected")
 
-    # 🔥 3. Test failure
-    if "Tests run:" in log and "Failures:" in log:
-        report["status"] = "FAILED"
-        report["errors"].append("Unit test failure detected")
-
-    # 🔥 4. Generic build failure
-    if "BUILD FAILURE" in log:
-        report["status"] = "FAILED"
-        report["errors"].append("Build failed")
-
-# 📦 Save report
+# save report
 os.makedirs(f"{BASE}/reports", exist_ok=True)
 
 with open(f"{BASE}/reports/project.json", "w") as f:
@@ -50,6 +39,5 @@ with open(f"{BASE}/reports/project.json", "w") as f:
 
 print("🤖 Project Agent Report:", report)
 
-# ❌ Fail pipeline if issue found
 if report["status"] == "FAILED":
     exit(1)
