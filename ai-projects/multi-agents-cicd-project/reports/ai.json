@@ -1,4 +1,6 @@
 {
-    "status": "APPROVED",
-    "reason": []
+    "status": "REJECTED",
+    "reason": [
+        "Invalid log4j version (not found in Maven repo)"
+    ]
 }
