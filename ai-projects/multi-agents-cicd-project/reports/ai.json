@@ -1,6 +1,4 @@
 {
-    "status": "REJECTED",
-    "reason": [
-        "[ERROR] COMPILATION ERROR : "
-    ]
+    "status": "APPROVED",
+    "reason": []
 }
