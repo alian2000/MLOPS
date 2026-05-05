@@ -6,7 +6,7 @@ BASE = "ai-projects/multi-agents-cicd-project"
 print("🔧 Fix Agent Running...")
 
 # -----------------------------
-# 🔥 FIX 1: pom.xml dependency
+# 🔥 FIX 1: pom.xml
 # -----------------------------
 pom_file = f"{BASE}/pom.xml"
 
@@ -14,46 +14,50 @@ if os.path.exists(pom_file):
     with open(pom_file, "r") as f:
         content = f.read()
 
-    original = content
-
-    # Fix ANY log4j version → safe version
-    content = re.sub(
+    new_content = re.sub(
         r'(<artifactId>log4j-core</artifactId>\s*<version>)(.*?)(</version>)',
         r'\g<1>2.17.2\g<3>',
         content
     )
 
-    if content != original:
+    if new_content != content:
         with open(pom_file, "w") as f:
-            f.write(content)
-
-        print("✅ Fixed: log4j dependency upgraded to 2.17.2")
+            f.write(new_content)
+        print("✅ Fixed: log4j version")
     else:
         print("ℹ️ No pom.xml changes needed")
 
 # -----------------------------
-# 🔥 FIX 2: Java syntax error
+# 🔥 FIX 2: Java syntax error (AUTO DETECT FILE)
 # -----------------------------
-java_file = f"{BASE}/src/main/java/com/demo/App.java"
+java_base = f"{BASE}/src/main/java"
 
-if os.path.exists(java_file):
-    with open(java_file, "r") as f:
-        code = f.read()
+fixed = False
 
-    original = code
+for root, dirs, files in os.walk(java_base):
+    for file in files:
+        if file.endswith(".java"):
+            java_file = os.path.join(root, file)
 
-    # Fix missing semicolon (demo case)
-    code = code.replace(
-        'System.out.println("Hello AI DevOps"',
-        'System.out.println("Hello AI DevOps");'
-    )
+            with open(java_file, "r") as f:
+                code = f.read()
 
-    if code != original:
-        with open(java_file, "w") as f:
-            f.write(code)
+            # detect missing semicolon
+            if 'System.out.println("Hello AI DevOps"' in code:
+                print(f"🔍 Found issue in: {java_file}")
 
-        print("✅ Fixed: Java syntax error corrected")
-    else:
-        print("ℹ️ No Java changes needed")
+                code = code.replace(
+                    'System.out.println("Hello AI DevOps"',
+                    'System.out.println("Hello AI DevOps");'
+                )
+
+                with open(java_file, "w") as f:
+                    f.write(code)
+
+                print(f"✅ Fixed: Java syntax in {file}")
+                fixed = True
+
+if not fixed:
+    print("ℹ️ No Java fixes applied")
 
 print("🔧 Fix Agent completed")
