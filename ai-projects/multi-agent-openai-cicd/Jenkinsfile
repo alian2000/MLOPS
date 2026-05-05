@@ -6,49 +6,88 @@ pipeline {
     }
 
     environment {
-        OPENAI_API_KEY = credentials('OPENAI_API_KEY')
+        OPENAI_API_KEY = credentials('openai-key')
     }
 
     stages {
 
         stage('Build') {
             steps {
-                sh 'mvn clean install -U > build.log || true'
+                sh '''
+                cd ai-projects/multi-agent-openai-cicd
+
+                mvn clean install -U > build.log 2>&1 || true
+
+                echo "===== BUILD LOG ====="
+                cat build.log
+                '''
             }
         }
 
         stage('Project Agent') {
             steps {
-                sh 'python3 ai-projects/multi-agent-openai-cicd/agents/project_agent.py'
+                sh '''
+                cd ai-projects/multi-agent-openai-cicd
+                export PYTHONPATH=$(pwd)
+
+                echo "🤖 Project Agent..."
+                python3 agents/project_agent.py || true
+                '''
             }
         }
 
         stage('Security Agent') {
             steps {
-                sh 'python3 ai-projects/multi-agent-openai-cicd/agents/security_agent.py'
-            }
-        }
-
-        stage('Combine Report') {
-            steps {
                 sh '''
-                cat build.log > reports/combined.txt
+                cd ai-projects/multi-agent-openai-cicd
+                export PYTHONPATH=$(pwd)
+
+                echo "🔐 Security Agent..."
+                python3 agents/security_agent.py || true
                 '''
             }
         }
 
-        stage('Decision Agent') {
+        stage('AI Decision') {
             steps {
-                sh 'python3 ai-projects/multi-agent-openai-cicd/agents/decision_agent.py'
+                sh '''
+                cd ai-projects/multi-agent-openai-cicd
+                export PYTHONPATH=$(pwd)
+
+                echo "🧠 AI Decision..."
+                python3 agents/decision_agent.py || true
+                '''
             }
         }
 
-        stage('Fix Agent') {
+        stage('AI Fix') {
             when {
-                expression { fileExists('build_failed') }
+                expression {
+                    return fileExists('ai-projects/multi-agent-openai-cicd/build_failed')
+                }
             }
             steps {
-                sh 'python3 ai-projects/multi-agent-openai-cicd/agents/fix_agent.py'
+                sh '''
+                cd ai-projects/multi-agent-openai-cicd
+                export PYTHONPATH=$(pwd)
+
+                echo "🔧 Fix Agent..."
+                python3 agents/fix_agent.py || true
+                '''
+            }
+        }
+
+        stage('Rebuild') {
+            when {
+                expression {
+                    return fileExists('ai-projects/multi-agent-openai-cicd/build_failed')
+                }
+            }
+            steps {
+                sh '''
+                cd ai-projects/multi-agent-openai-cicd
+                mvn clean install -U
+                '''
             }
         }
     }
