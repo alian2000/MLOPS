@@ -1,6 +1,4 @@
 {
-    "status": "FAILED",
-    "errors": [
-        "[ERROR] COMPILATION ERROR : "
-    ]
+    "status": "SUCCESS",
+    "errors": []
 }
