@@ -1,7 +1,7 @@
 # -----------------------------
 # 🔥 FIX 2: Java syntax error (SMART FIX)
 # -----------------------------
-java_base = f"{BASE}/src/main/java"
+java_base = f"/src/main/java"
 
 fixed = False
 
