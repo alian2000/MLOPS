@@ -1,8 +1,7 @@
 {
     "status": "REJECTED",
     "reason": [
-        "Build failure",
         "Dependency resolution failed",
-        "Invalid log4j version (not found in Maven repo)"
+        "Build failed"
     ]
 }
