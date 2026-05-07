@@ -1,4 +1,4 @@
-===== BUILD LOG =====
+===== FINAL BUILD LOG =====
 [INFO] Scanning for projects...
 [INFO] 
 [INFO] --------------------------< com.demo:ai-cicd >--------------------------
@@ -11,8 +11,8 @@ Downloading from central: https://repo.maven.apache.org/maven2/org/apache/loggin
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  0.990 s
-[INFO] Finished at: 2026-05-07T20:02:26Z
+[INFO] Total time:  0.822 s
+[INFO] Finished at: 2026-05-07T19:51:11Z
 [INFO] ------------------------------------------------------------------------
 [ERROR] Failed to execute goal on project ai-cicd: Could not resolve dependencies for project com.demo:ai-cicd:jar:1.0
 [ERROR] dependency: org.apache.logging.log4j:log4j-core:jar:1.1.1 (compile)
@@ -25,15 +25,3 @@ Downloading from central: https://repo.maven.apache.org/maven2/org/apache/loggin
 [ERROR] 
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException
-
-===== PROJECT REPORT =====
-{
-    "status": "SUCCESS",
-    "errors": []
-}
-===== SECURITY REPORT =====
-{
-    "issues": [
-        "Invalid log4j version (not found in Maven repo)"
-    ]
-}
