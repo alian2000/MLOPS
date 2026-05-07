@@ -8,6 +8,7 @@ pipeline {
 
     environment {
         PROJECT_PATH = "ai-projects/multi-agent-openai-cicd"
+        MAVEN_OPTS = "-Duser.home=/tmp"
     }
 
     stages {
@@ -16,15 +17,31 @@ pipeline {
         // 📥 CLONE
         // ------------------------------------------------
         stage('Clone Repository') {
-
             steps {
-
                 deleteDir()
 
                 git branch: 'main',
-                url: 'https://github.com/Rohitcs09/MLOPS.git'
+                    url: 'https://github.com/Rohitcs09/MLOPS.git'
 
                 echo "✅ Repository cloned successfully"
+            }
+        }
+
+        // ------------------------------------------------
+        // 🧹 CLEAN + FIX PERMISSIONS
+        // ------------------------------------------------
+        stage('Workspace Fix') {
+            steps {
+                sh '''
+                echo "🧹 Cleaning workspace & dependency cache..."
+
+                chmod -R 777 . || true
+                rm -rf dependency-check || true
+                rm -rf dependency-check-data || true
+                rm -rf ~/.m2/repository || true
+
+                echo "✅ Workspace fixed"
+                '''
             }
         }
 
@@ -32,35 +49,24 @@ pipeline {
         // 🏗 BUILD
         // ------------------------------------------------
         stage('Build') {
-
             steps {
-
                 script {
 
-                    def status = sh(script: '''
-                    cd ${PROJECT_PATH}
+                    def status = sh(script: """
+                        cd ${PROJECT_PATH}
 
-                    mkdir -p reports
+                        mkdir -p reports
 
-                    echo "🏗 Running Maven Build..."
+                        echo "🏗 Running Maven Build..."
 
-                    mvn clean install -U > build.log 2>&1
-                    ''', returnStatus: true)
+                        mvn clean install -U > build.log 2>&1
+                    """, returnStatus: true)
 
                     if (status != 0) {
-
-                        sh '''
-                        touch ${PROJECT_PATH}/build_failed
-                        '''
-
+                        sh "touch ${PROJECT_PATH}/build_failed"
                         echo "❌ Build Failed"
-
                     } else {
-
-                        sh '''
-                        rm -f ${PROJECT_PATH}/build_failed
-                        '''
-
+                        sh "rm -f ${PROJECT_PATH}/build_failed"
                         echo "✅ Build Success"
                     }
                 }
@@ -71,24 +77,17 @@ pipeline {
         // 🤖 PROJECT AGENT
         // ------------------------------------------------
         stage('Project Agent') {
-
             when {
-                expression {
-                    return fileExists("${PROJECT_PATH}/build_failed")
-                }
+                expression { fileExists("${PROJECT_PATH}/build_failed") }
             }
 
             steps {
-
-                sh '''
+                sh """
                 cd ${PROJECT_PATH}
-
                 mkdir -p reports
-
                 echo "🤖 Running Project Agent..."
-
                 python3 agents/project_agent.py
-                '''
+                """
             }
         }
 
@@ -96,24 +95,16 @@ pipeline {
         // 🔐 SECURITY AGENT
         // ------------------------------------------------
         stage('Security Agent') {
-
             when {
-                expression {
-                    return fileExists("${PROJECT_PATH}/build_failed")
-                }
+                expression { fileExists("${PROJECT_PATH}/build_failed") }
             }
 
             steps {
-
-                sh '''
+                sh """
                 cd ${PROJECT_PATH}
-
-                mkdir -p reports
-
                 echo "🔐 Running Security Agent..."
-
                 python3 agents/security_agent.py
-                '''
+                """
             }
         }
 
@@ -121,31 +112,20 @@ pipeline {
         // 🧠 DECISION AGENT
         // ------------------------------------------------
         stage('Decision Agent') {
-
             when {
-                expression {
-                    return fileExists("${PROJECT_PATH}/build_failed")
-                }
+                expression { fileExists("${PROJECT_PATH}/build_failed") }
             }
 
             steps {
-
                 withCredentials([
-                    string(
-                        credentialsId: 'OPENAI_API_KEY',
-                        variable: 'OPENAI_API_KEY'
-                    )
+                    string(credentialsId: 'OPENAI_API_KEY', variable: 'OPENAI_API_KEY')
                 ]) {
-
-                    sh '''
+                    sh """
                     cd ${PROJECT_PATH}
-
                     export OPENAI_API_KEY=$OPENAI_API_KEY
-
                     echo "🧠 Running Decision Agent..."
-
                     python3 agents/decision_agent.py
-                    '''
+                    """
                 }
             }
         }
@@ -154,109 +134,68 @@ pipeline {
         // 🔧 FIX AGENT
         // ------------------------------------------------
         stage('Fix Agent') {
-
             when {
-                expression {
-                    return fileExists("${PROJECT_PATH}/build_failed")
-                }
+                expression { fileExists("${PROJECT_PATH}/build_failed") }
             }
 
             steps {
-
                 withCredentials([
-
-                    string(
-                        credentialsId: 'OPENAI_API_KEY',
-                        variable: 'OPENAI_API_KEY'
-                    ),
-
-                    usernamePassword(
-                        credentialsId: 'github-creds',
+                    string(credentialsId: 'OPENAI_API_KEY', variable: 'OPENAI_API_KEY'),
+                    usernamePassword(credentialsId: 'github-creds',
                         usernameVariable: 'GIT_USER',
-                        passwordVariable: 'GIT_PASS'
-                    )
-
+                        passwordVariable: 'GIT_PASS')
                 ]) {
 
-                    sh '''
+                    sh """
                     cd ${PROJECT_PATH}
 
                     export OPENAI_API_KEY=$OPENAI_API_KEY
 
-                    echo "📄 Showing Fix Agent"
-
-                    cat agents/fix_agent.py
-
                     echo "🤖 Running Fix Agent..."
-
                     python3 agents/fix_agent.py
 
-                    echo "📄 Updated pom.xml"
-
+                    echo "📄 Showing changes..."
                     cat pom.xml || true
-
-                    echo "📄 Updated App.java"
-
                     cat src/main/java/App.java || true
-                    '''
+                    """
                 }
             }
         }
 
         // ------------------------------------------------
-        // 📤 PUSH AI FIXES
+        // 📤 PUSH FIXES
         // ------------------------------------------------
         stage('Push AI Fixes') {
-
             when {
-                expression {
-                    return fileExists("${PROJECT_PATH}/build_failed")
-                }
+                expression { fileExists("${PROJECT_PATH}/build_failed") }
             }
 
             steps {
-
                 withCredentials([
-
-                    usernamePassword(
-                        credentialsId: 'github-creds',
+                    usernamePassword(credentialsId: 'github-creds',
                         usernameVariable: 'GIT_USER',
-                        passwordVariable: 'GIT_PASS'
-                    )
-
+                        passwordVariable: 'GIT_PASS')
                 ]) {
 
-                    sh '''
+                    sh """
                     cd ${PROJECT_PATH}
 
                     git config user.email "jenkins@ai.com"
-
                     git config user.name "AI Fix Agent"
 
                     git checkout main || true
-
                     git add .
 
                     if git diff --cached --quiet; then
-
-                        echo "⚠️ No changes detected"
-
+                        echo "⚠️ No changes to commit"
                     else
-
-                        echo "📝 Commiting AI fixes..."
-
+                        echo "📝 Committing AI fixes..."
                         git commit -m "[AI] Auto Fix Applied"
-
                         git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
-
-                        echo "⬆️ Pushing AI fixes..."
-
-                        git push origin HEAD:main --force
-
+                        git push origin main --force
                         echo "✅ GitHub Updated"
-
                     fi
-                    '''
+                    """
                 }
             }
         }
@@ -265,48 +204,38 @@ pipeline {
         // 🔁 REBUILD
         // ------------------------------------------------
         stage('Rebuild') {
-
             when {
-                expression {
-                    return fileExists("${PROJECT_PATH}/build_failed")
-                }
+                expression { fileExists("${PROJECT_PATH}/build_failed") }
             }
 
             steps {
-
                 script {
 
-                    def rebuild = sh(script: '''
-                    cd ${PROJECT_PATH}
+                    def rebuild = sh(script: """
+                        cd ${PROJECT_PATH}
 
-                    echo "🔁 Rebuilding after AI Fix..."
+                        echo "🔁 Rebuilding after AI Fix..."
 
-                    mvn clean install -U
-                    ''', returnStatus: true)
+                        mvn clean install -U
+                    """, returnStatus: true)
 
                     if (rebuild != 0) {
-
-                        error("❌ Build still failing")
-
+                        error("❌ Build still failing after AI fix")
                     } else {
-
-                        sh '''
-                        rm -f ${PROJECT_PATH}/build_failed
-                        '''
-
-                        echo "✅ BUILD FIXED SUCCESSFULLY"
+                        sh "rm -f ${PROJECT_PATH}/build_failed"
+                        echo "🎉 BUILD FIXED SUCCESSFULLY"
                     }
                 }
             }
         }
     }
 
+    // ------------------------------------------------
+    // 📦 ARCHIVE REPORTS
+    // ------------------------------------------------
     post {
-
         always {
-
             archiveArtifacts artifacts: 'ai-projects/multi-agent-openai-cicd/reports/*', fingerprint: true
-
         }
     }
 }
