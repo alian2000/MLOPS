@@ -12,11 +12,13 @@ client = OpenAI(
 
 BASE_PATH = os.getcwd()
 
+LOG_FILE = f"{BASE_PATH}/build.log"
 
-JAVA_FILE = os.path.join(BASE_PATH, "src/main/java/App.java")
-POM_FILE = os.path.join(BASE_PATH, "pom.xml")
-LOG_FILE = os.path.join(BASE_PATH, "build.log")
-REPORT_DIR = os.path.join(BASE_PATH, "reports")
+JAVA_FILE = f"{BASE_PATH}/src/main/java/App.java"
+
+POM_FILE = f"{BASE_PATH}/pom.xml"
+
+REPORT_DIR = f"{BASE_PATH}/reports"
 
 # ------------------------------------------------
 # READ FILE
