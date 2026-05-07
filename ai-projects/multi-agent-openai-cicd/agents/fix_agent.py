@@ -118,6 +118,4 @@ with open(report_file, "w") as f:
 print("✅ Fix report generated")
 
 
-    print("✅ Removed build_failed flag")
-
 print("🎉 Fix Agent Completed")
