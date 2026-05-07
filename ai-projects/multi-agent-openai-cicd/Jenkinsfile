@@ -11,11 +11,22 @@ pipeline {
 
     stages {
 
-        stage('Build') {
-            steps {
-                sh 'mvn clean install -U > build.log || true'
-            }
+
+
+       stage('Build') {
+    steps {
+        dir("ai-projects/multi-agent-openai-cicd") {
+            sh '''
+            echo "🏗 Running Maven Build..."
+
+            mvn clean install -U > build.log 2>&1
+
+            ls -la build.log
+            '''
         }
+    }
+}
+
 
         stage('Project Agent') {
             steps {
