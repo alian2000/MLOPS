@@ -98,7 +98,7 @@ pipeline {
 
 
 
-       stage('Commit AI Changes') {
+      stage('Commit AI Changes') {
 
     when {
         expression {
@@ -126,19 +126,23 @@ pipeline {
             then
                 echo "⚠️ No changes detected"
             else
+
                 git commit -m "[ai] auto-fix by multi-agent system"
 
                 git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
 
+                echo "⬇️ Pulling latest changes..."
+                git pull origin main --rebase
+
+                echo "⬆️ Pushing AI fixes..."
                 git push origin main
 
-                echo "✅ AI changes pushed to GitHub"
+                echo "✅ AI changes pushed successfully"
             fi
             '''
         }
     }
 }
-
 
 
         stage('Rebuild') {
