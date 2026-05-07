@@ -1,76 +1,215 @@
 import os
 import json
+from openai import OpenAI
 
-print("🔧 Fix Agent Started...")
+# -----------------------------------
+# CONFIG
+# -----------------------------------
 
-PROJECT_ROOT = "/var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd"
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-REPORTS_DIR = f"{PROJECT_ROOT}/reports"
+BASE_PATH = "ai-devops-maven"
 
-os.makedirs(REPORTS_DIR, exist_ok=True)
+LOG_FILE = f"{BASE_PATH}/build.log"
+JAVA_FILE = f"{BASE_PATH}/src/main/java/App.java"
+POM_FILE = f"{BASE_PATH}/pom.xml"
 
-fix_report = {
-    "fixes_applied": []
-}
+REPORT_DIR = "reports"
 
-# ------------------------------------------------
-# FIX POM.XML
-# ------------------------------------------------
+# -----------------------------------
+# HELPERS
+# -----------------------------------
 
-pom_path = f"{PROJECT_ROOT}/pom.xml"
+def read_file(path):
 
-if os.path.exists(pom_path):
+    if os.path.exists(path):
 
-    with open(pom_path, "r") as f:
-        pom = f.read()
+        with open(path, "r") as f:
+            return f.read()
 
-    pom = pom.replace("1.1.1", "2.17.1")
+    return ""
 
-    with open(pom_path, "w") as f:
-        f.write(pom)
 
-    print("✅ pom.xml fixed")
+def write_file(path, content):
 
-    fix_report["fixes_applied"].append(
-        "Updated log4j version"
+    with open(path, "w") as f:
+        f.write(content)
+
+
+# -----------------------------------
+# ASK OPENAI
+# -----------------------------------
+
+def ask_ai(log, java_code, pom):
+
+    prompt = f"""
+You are an autonomous DevOps AI Agent.
+
+A Maven build failed.
+
+Analyze the logs carefully and FIX ALL ISSUES.
+
+Possible issues:
+- Java syntax errors
+- Invalid dependencies
+- Maven build failures
+- Compilation errors
+
+BUILD LOG:
+{log}
+
+JAVA FILE:
+{java_code}
+
+POM.XML:
+{pom}
+
+IMPORTANT:
+1. Return COMPLETE updated Java code
+2. Return COMPLETE updated pom.xml
+3. Do NOT explain anything
+4. Return ONLY in this format
+
+---JAVA---
+<complete fixed java code>
+
+---POM---
+<complete fixed pom.xml>
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4.1-mini",
+        messages=[
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
     )
 
-# ------------------------------------------------
-# FIX APP.JAVA
-# ------------------------------------------------
+    return response.choices[0].message.content
 
-java_path = f"{PROJECT_ROOT}/src/main/java/App.java"
 
-fixed_java = '''
-public class App {
+# -----------------------------------
+# APPLY FIX
+# -----------------------------------
 
-    public static void main(String[] args) {
+def apply_fix(ai_output):
 
-        System.out.println("Hello AI DevOps");
+    if "---JAVA---" not in ai_output or "---POM---" not in ai_output:
 
+        print("❌ Invalid AI response format")
+        return False
+
+    try:
+
+        java_part = ai_output.split("---JAVA---")[1].split("---POM---")[0]
+
+        pom_part = ai_output.split("---POM---")[1]
+
+        print("📄 Updating App.java...")
+        write_file(JAVA_FILE, java_part.strip())
+
+        print("📄 Updating pom.xml...")
+        write_file(POM_FILE, pom_part.strip())
+
+        return True
+
+    except Exception as e:
+
+        print(f"❌ Failed applying fix: {e}")
+        return False
+
+
+# -----------------------------------
+# GENERATE REPORT
+# -----------------------------------
+
+def generate_report():
+
+    os.makedirs(REPORT_DIR, exist_ok=True)
+
+    report = {
+        "status": "fixed",
+        "updated_files": [
+            JAVA_FILE,
+            POM_FILE
+        ]
     }
 
-}
-'''
+    with open(f"{REPORT_DIR}/fix_report.json", "w") as f:
+        json.dump(report, f, indent=4)
 
-with open(java_path, "w") as f:
-    f.write(fixed_java)
+    print("✅ fix_report.json generated")
 
-print("✅ App.java fixed")
 
-fix_report["fixes_applied"].append(
-    "Fixed Java syntax error"
-)
+# -----------------------------------
+# GITHUB PUSH
+# -----------------------------------
 
-# ------------------------------------------------
-# SAVE REPORT
-# ------------------------------------------------
+def push_changes():
 
-report_path = f"{REPORTS_DIR}/fix_report.json"
+    print("📤 Pushing AI fixes to GitHub...")
 
-with open(report_path, "w") as f:
-    json.dump(fix_report, f, indent=4)
+    os.system('''
+    git config user.email "jenkins@ai.com"
 
-print("✅ fix_report.json created")
+    git config user.name "AI Fix Agent"
 
-print("🎉 Fix Agent Completed")
+    git checkout main || true
+
+    git add .
+
+    git commit -m "[AI] Auto Fix Applied" || true
+
+    git push origin HEAD:main --force
+    ''')
+
+    print("✅ GitHub updated")
+
+
+# -----------------------------------
+# MAIN
+# -----------------------------------
+
+def main():
+
+    print("🤖 AI Agent Started...")
+
+    log = read_file(LOG_FILE)
+
+    if not log:
+
+        print("❌ build.log missing")
+        return
+
+    java_code = read_file(JAVA_FILE)
+
+    pom = read_file(POM_FILE)
+
+    print("🧠 Asking OpenAI for fixes...")
+
+    ai_output = ask_ai(log, java_code, pom)
+
+    print("\n🤖 AI RESPONSE:\n")
+    print(ai_output)
+
+    fixed = apply_fix(ai_output)
+
+    if fixed:
+
+        print("✅ AI Fix Applied")
+
+        generate_report()
+
+        push_changes()
+
+        print("🎉 AI Self-Healing Completed")
+
+    else:
+
+        print("❌ AI Fix Failed")
+
+
+if __name__ == "__main__":
+    main()
