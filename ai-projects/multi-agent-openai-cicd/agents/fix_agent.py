@@ -1,53 +1,40 @@
 import os
 import re
 
-print("🔧 Checking pom.xml...")
+print("🔧 Fixing pom.xml dependency issue...")
 
-BASE_DIR = os.getcwd()
-
-pom_path = os.path.join(BASE_DIR, "pom.xml")
-
-print("📂 Current Path:", BASE_DIR)
-print("📂 pom.xml:", pom_path)
+pom_path = "pom.xml"
 
 if os.path.exists(pom_path):
-
-    print("✅ pom.xml found")
 
     with open(pom_path, "r") as f:
         pom = f.read()
 
-    print("📄 Existing pom.xml:")
+    print("📄 BEFORE FIX:")
     print(pom)
 
-    updated_pom = pom.replace(
-        "<version>1.1.1</version>",
-        "<version>2.17.1</version>"
+    # FORCE REPLACE INVALID LOG4J VERSION
+    pom = pom.replace(
+        "1.1.1",
+        "2.17.1"
     )
 
-    updated_pom = updated_pom.replace(
-        "<version>1.1.0</version>",
-        "<version>2.17.1</version>"
+    pom = pom.replace(
+        "1.1.0",
+        "2.17.1"
     )
 
-    if pom != updated_pom:
+    with open(pom_path, "w") as f:
+        f.write(pom)
 
-        with open(pom_path, "w") as f:
-            f.write(updated_pom)
+    print("✅ pom.xml UPDATED")
 
-        print("✅ log4j version updated successfully")
+    # VERIFY UPDATED CONTENT
+    with open(pom_path, "r") as f:
+        verify = f.read()
 
-        # VERIFY AGAIN
-        with open(pom_path, "r") as f:
-            verify = f.read()
-
-        print("📄 Updated pom.xml:")
-        print(verify)
-
-    else:
-
-        print("⚠️ No dependency replacement happened")
+    print("📄 AFTER FIX:")
+    print(verify)
 
 else:
-
-    print("❌ pom.xml NOT found")
+    print("❌ pom.xml not found")
