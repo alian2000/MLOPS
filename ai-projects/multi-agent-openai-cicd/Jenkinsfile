@@ -3,7 +3,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'
+        maven 'Maven'
     }
 
     environment {
@@ -12,99 +12,63 @@ pipeline {
 
     stages {
 
-        stage('Clone Check') {
+        // ------------------------------------------------
+        // 📥 CLONE
+        // ------------------------------------------------
+        stage('Clone Repository') {
+
             steps {
-                echo "Repository cloned successfully"
+
+                git branch: 'main',
+                url: 'https://github.com/Rohitcs09/MLOPS.git'
+
+                echo "✅ Repository cloned successfully"
             }
         }
 
+        // ------------------------------------------------
+        // 🏗 BUILD
+        // ------------------------------------------------
+        stage('Build') {
 
+            steps {
 
-       stage('Build') {
+                script {
 
-    steps {
+                    def status = sh(script: '''
+                    cd ${PROJECT_PATH}
 
-        script {
+                    mkdir -p reports
 
-            def status = sh(
-                script: '''
-                cd ai-projects/multi-agent-openai-cicd
+                    echo "🏗 Running Maven Build..."
 
-                mkdir -p reports
+                    mvn clean install -U > build.log 2>&1
+                    ''', returnStatus: true)
 
-                mvn clean install -U > build.log 2>&1
-                ''',
-                returnStatus: true
-            )
+                    if (status != 0) {
 
-            echo "Build Status: ${status}"
+                        sh '''
+                        touch ${PROJECT_PATH}/build_failed
+                        '''
 
-            if (status != 0) {
+                        echo "❌ Build Failed"
 
-                echo "❌ Build Failed"
+                    } else {
 
-                writeFile(
-                    file: 'ai-projects/multi-agent-openai-cicd/build_failed',
-                    text: 'failed'
-                )
+                        sh '''
+                        rm -f ${PROJECT_PATH}/build_failed
+                        '''
 
-            } else {
-
-                echo "✅ Build Success"
-
+                        echo "✅ Build Success"
+                    }
+                }
             }
-
         }
 
-    }
-
-}
-
-
-
+        // ------------------------------------------------
+        // 🤖 PROJECT AGENT
+        // ------------------------------------------------
         stage('Project Agent') {
-            steps {
-
-                sh '''
-                cd ${PROJECT_PATH}
-
-                export PYTHONPATH=$(pwd)
-
-                python3 agents/project_agent.py
-                '''
-
-            }
-        }
-
-        stage('Security Agent') {
-            steps {
-
-                sh '''
-                cd ${PROJECT_PATH}
-
-                export PYTHONPATH=$(pwd)
-
-                python3 agents/security_agent.py
-                '''
-
-            }
-        }
-
-        stage('Decision Agent') {
-            steps {
-
-                sh '''
-                cd ${PROJECT_PATH}
-
-                export PYTHONPATH=$(pwd)
-
-                python3 agents/decision_agent.py
-                '''
-
-            }
-        }
-
-        stage('Fix Agent') {
 
             when {
                 expression {
@@ -119,64 +83,126 @@ pipeline {
 
                 export PYTHONPATH=$(pwd)
 
-                python3 agents/fix_agent.py
-                '''
+                echo "🤖 Running Project Agent..."
 
+                python3 agents/project_agent.py
+                '''
+            }
+        }
+
+        // ------------------------------------------------
+        // 🔐 SECURITY AGENT
+        // ------------------------------------------------
+        stage('Security Agent') {
+
+            when {
+                expression {
+                    return fileExists("${PROJECT_PATH}/build_failed")
+                }
             }
 
+            steps {
+
+                sh '''
+                cd ${PROJECT_PATH}
+
+                export PYTHONPATH=$(pwd)
+
+                echo "🔐 Running Security Agent..."
+
+                python3 agents/security_agent.py
+                '''
+            }
         }
-	stage('Push AI Fixes') {
+
+        // ------------------------------------------------
+        // 🧠 DECISION AGENT
+        // ------------------------------------------------
+        stage('Decision Agent') {
+
+            when {
+                expression {
+                    return fileExists("${PROJECT_PATH}/build_failed")
+                }
+            }
+
+            steps {
+
+                withCredentials([
+                    string(
+                        credentialsId: 'OPENAI_API_KEY',
+                        variable: 'OPENAI_API_KEY'
+                    )
+                ]) {
+
+                    sh '''
+                    cd ${PROJECT_PATH}
+
+                    export PYTHONPATH=$(pwd)
+
+                    echo "🧠 Running Decision Agent..."
+
+                    python3 agents/decision_agent.py
+                    '''
+                }
+            }
+        }
+
+        // ------------------------------------------------
+        // 🔧 FIX AGENT
+        // ------------------------------------------------
+
+
+
+         stage('Fix Agent') {
+
+    when {
+        expression {
+            return fileExists("${PROJECT_PATH}/build_failed")
+        }
+    }
 
     steps {
 
         withCredentials([
+
+            string(
+                credentialsId: 'OPENAI_API_KEY',
+                variable: 'OPENAI_API_KEY'
+            ),
+
             usernamePassword(
                 credentialsId: 'github-creds',
                 usernameVariable: 'GIT_USER',
                 passwordVariable: 'GIT_PASS'
             )
+
         ]) {
 
             sh '''
             cd ${PROJECT_PATH}
 
-            echo "📂 Current Path"
-            pwd
+            echo "📄 Showing Fix Agent File"
 
-            echo "📌 Git Status"
-            git status
+            cat agents/fix_agent.py
 
-            echo "🌿 Current Branch"
-            git branch
+            export PYTHONPATH=$(pwd)
 
-            echo "🔄 Checkout main"
-            git checkout main
+            export OPENAI_API_KEY=$OPENAI_API_KEY
 
-            echo "➕ Adding changes"
-            git add .
+            echo "🤖 Running Fix Agent..."
 
-            echo "📝 Commit changes"
-            git commit -m "🤖 AI Auto Fix" || true
-
-            echo "🔗 Setting remote"
-            git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/Rohitcs09/MLOPS.git
-
-            echo "⬇️ Pull latest"
-            git pull origin main --rebase || true
-
-            echo "⬆️ Push changes"
-            git push origin main --force
-
-            echo "✅ GitHub Updated"
+            python3 agents/fix_agent.py
             '''
-
         }
-
     }
-
 }
 
-        stage('Rebuild') {
+
+        // ------------------------------------------------
+        // 🔁 REBUILD
+        // ------------------------------------------------
+        stage('Rebuild After Fix') {
 
             when {
                 expression {
@@ -186,26 +212,42 @@ pipeline {
 
             steps {
 
-                sh '''
-                cd ${PROJECT_PATH}
+                script {
 
-                mvn clean install -U
-                '''
+                    def rebuildStatus = sh(script: '''
+                    cd ${PROJECT_PATH}
 
+                    echo "🔁 Rebuilding after AI fix..."
+
+                    mvn clean install -U
+                    ''', returnStatus: true)
+
+                    if (rebuildStatus != 0) {
+
+                        error("❌ Build still failing")
+
+                    } else {
+
+                        sh '''
+                        rm -f ${PROJECT_PATH}/build_failed
+                        '''
+
+                        echo "✅ BUILD FIXED SUCCESSFULLY"
+                    }
+                }
             }
-
         }
-
     }
 
+    // ------------------------------------------------
+    // 📦 REPORTS
+    // ------------------------------------------------
     post {
 
         always {
 
-            archiveArtifacts artifacts: '**/reports/*.json', fingerprint: true
+            archiveArtifacts artifacts: 'ai-projects/multi-agent-openai-cicd/reports/*', fingerprint: true
 
         }
-
     }
-
 }
