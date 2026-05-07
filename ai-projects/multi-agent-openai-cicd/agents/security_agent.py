@@ -18,7 +18,7 @@ if "1.1.0" in pom:
     report["status"] = "FAILED"
     report["issues"].append("Old vulnerable log4j version")
 
-with open("reports/security_report.json", "w") as f:
+with open("reports/security.json", "w") as f:
     json.dump(report, f, indent=4)
 
 print(report)

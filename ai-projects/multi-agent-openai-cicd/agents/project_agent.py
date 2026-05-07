@@ -20,7 +20,7 @@ if "';' expected" in log:
 if "BUILD FAILURE" in log:
     report["status"] = "FAILED"
 
-with open("reports/project_report.json", "w") as f:
+with open("reports/project.json", "w") as f:
     json.dump(report, f, indent=4)
 
 print(report)

@@ -19,7 +19,7 @@ if security["status"] == "FAILED":
     final["decision"] = "REJECTED"
     final["reasons"].extend(security["issues"])
 
-with open("reports/decision_report.json", "w") as f:
+with open("reports/ai.json", "w") as f:
     json.dump(final, f, indent=4)
 
 print("🧠 AI Decision:")
