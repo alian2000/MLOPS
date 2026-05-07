@@ -96,22 +96,48 @@ pipeline {
             }
         }
 
-        stage('AI Fix') {
-            when {
-                expression {
-                    return fileExists('ai-projects/multi-agent-openai-cicd/build_failed')
-                }
-            }
-            steps {
-                sh '''
-                cd ai-projects/multi-agent-openai-cicd
-                export PYTHONPATH=$(pwd)
 
-                echo "🔧 Fix Agent..."
-                python3 agents/fix_agent.py || true
-                '''
-            }
+
+                 stage('Commit AI Changes') {
+    when {
+        expression {
+            return fileExists('ai-projects/multi-agent-openai-cicd/build_failed')
         }
+    }
+
+    steps {
+
+        withCredentials([usernamePassword(
+            credentialsId: 'YOUR_GITHUB_CREDENTIAL_ID',
+            usernameVariable: 'GIT_USER',
+            passwordVariable: 'GIT_PASS'
+        )]) {
+
+            sh '''
+            cd ai-projects/multi-agent-openai-cicd
+
+            git config user.email "jenkins@ai.com"
+            git config user.name "Jenkins AI Bot"
+
+            git add .
+
+            if git diff --cached --quiet
+            then
+                echo "⚠️ No changes detected"
+            else
+                git commit -m "[ai] auto-fix by multi-agent system"
+
+                git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
+
+                git push origin main
+
+                echo "✅ AI changes pushed"
+            fi
+            '''
+        }
+    }
+}
+
 
         stage('Rebuild') {
             when {
@@ -126,5 +152,29 @@ pipeline {
                 '''
             }
         }
+
+	stage('Update Final Reports') {
+    steps {
+
+        sh '''
+        cd ai-projects/multi-agent-openai-cicd
+
+        mkdir -p reports
+
+        echo "BUILD SUCCESS" > reports/final_status.txt
+
+        echo "===== FINAL BUILD LOG =====" > reports/final_report.txt
+
+        cat build.log >> reports/final_report.txt
+
+        echo "✅ Reports Updated"
+        '''
     }
 }
+    }
+}
+
+
+
+
+
