@@ -1,42 +1,12 @@
 import os
 from utils.openai_client import ask_gpt
 
-BASE = os.getcwd()
-
 print("🔧 Fix Agent Running...")
 
-# -----------------------------
-# READ BUILD LOG
-# -----------------------------
-log_path = "build.log"
+# --------------------------------
+# FIX 1 : pom.xml dependency
+# --------------------------------
 
-if not os.path.exists(log_path):
-    print("❌ build.log not found")
-    exit(1)
-
-log = open(log_path).read()
-
-# -----------------------------
-# OPENAI ANALYSIS
-# -----------------------------
-prompt = f"""
-Analyze this Maven build log.
-
-If dependency version is invalid,
-suggest correct stable version.
-
-BUILD LOG:
-{log}
-"""
-
-response = ask_gpt(prompt)
-
-print("🧠 OpenAI Suggestion:")
-print(response)
-
-# -----------------------------
-# AUTO FIX pom.xml
-# -----------------------------
 pom_path = "pom.xml"
 
 if os.path.exists(pom_path):
@@ -44,8 +14,7 @@ if os.path.exists(pom_path):
     with open(pom_path, "r") as f:
         pom = f.read()
 
-    # invalid log4j version fix
-    if "1.1.1" in pom:
+    if "<version>1.1.1</version>" in pom:
 
         print("🔧 Fixing invalid log4j version...")
 
@@ -57,12 +26,38 @@ if os.path.exists(pom_path):
         with open(pom_path, "w") as f:
             f.write(pom)
 
-        print("✅ pom.xml updated")
+        print("✅ pom.xml fixed")
 
-    else:
-        print("ℹ️ No invalid dependency found")
+# --------------------------------
+# FIX 2 : Java syntax error
+# --------------------------------
 
-else:
-    print("❌ pom.xml not found")
+java_base = "src/main/java"
 
-print("✅ Fix Agent completed")
+for root, dirs, files in os.walk(java_base):
+
+    for file in files:
+
+        if file.endswith(".java"):
+
+            java_file = os.path.join(root, file)
+
+            with open(java_file, "r") as f:
+                code = f.read()
+
+            # detect wrong syntax
+            if 'System.out.println("Hello AI DevOps");)' in code:
+
+                print(f"🔧 Fixing syntax in {file}")
+
+                fixed = code.replace(
+                    'System.out.println("Hello AI DevOps");)',
+                    'System.out.println("Hello AI DevOps");'
+                )
+
+                with open(java_file, "w") as f:
+                    f.write(fixed)
+
+                print(f"✅ Syntax fixed in {file}")
+
+print("✅ Fix Agent Completed")
