@@ -48,6 +48,42 @@ pipeline {
             }
         }
 
+	stage('Combine Reports') {
+    steps {
+        sh '''
+        cd ai-projects/multi-agent-openai-cicd
+
+        mkdir -p reports
+
+        echo "📊 Creating combined report..."
+
+        touch reports/combined.txt
+
+        echo "===== BUILD LOG =====" > reports/combined.txt
+
+        if [ -f build.log ]; then
+            cat build.log >> reports/combined.txt
+        fi
+
+        echo "\n===== PROJECT REPORT =====" >> reports/combined.txt
+
+        if [ -f reports/project.json ]; then
+            cat reports/project.json >> reports/combined.txt
+        fi
+
+        echo "\n===== SECURITY REPORT =====" >> reports/combined.txt
+
+        if [ -f reports/security.json ]; then
+            cat reports/security.json >> reports/combined.txt
+        fi
+
+        echo "✅ combined.txt created"
+
+        ls -R reports
+        '''
+    }
+}
+
         stage('AI Decision') {
             steps {
                 sh '''
