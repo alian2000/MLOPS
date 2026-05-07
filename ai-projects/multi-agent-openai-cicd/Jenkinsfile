@@ -15,7 +15,7 @@ pipeline {
 
        stage('Build') {
     steps {
-        dir("ai-projects/multi-agent-openai-cicd") {
+        dir("/var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd") {
             sh '''
             echo "🏗 Running Maven Build..."
 
