@@ -117,17 +117,6 @@ with open(report_file, "w") as f:
 
 print("✅ Fix report generated")
 
-# ------------------------------------------------
-# REMOVE BUILD FAILED FLAG
-# ------------------------------------------------
-build_failed = os.path.join(
-    PROJECT_ROOT,
-    "build_failed"
-)
-
-if os.path.exists(build_failed):
-
-    os.remove(build_failed)
 
     print("✅ Removed build_failed flag")
 
