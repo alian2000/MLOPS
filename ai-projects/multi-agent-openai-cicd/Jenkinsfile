@@ -145,20 +145,38 @@ pipeline {
 
 
 
+      stage('Rebuild') {
 
-        stage('Rebuild') {
-            when {
-                expression {
-                    return fileExists('ai-projects/multi-agent-openai-cicd/build_failed')
-                }
-            }
-            steps {
-                sh '''
-                cd ai-projects/multi-agent-openai-cicd
-                mvn clean install -U
-                '''
-            }
+    when {
+        expression {
+            return fileExists('ai-projects/multi-agent-openai-cicd/build_failed')
         }
+    }
+
+    steps {
+
+        sh '''
+        cd ai-projects/multi-agent-openai-cicd
+
+        echo "⬇️ Pulling latest AI-fixed code..."
+
+        git pull origin main
+
+        echo "📄 Updated pom.xml:"
+        cat pom.xml
+
+        echo "🚀 Rebuilding project..."
+
+        mvn clean install -U | tee build.log
+
+        rm -f build_failed
+
+        echo "✅ Build recovered successfully"
+        '''
+    }
+}
+
+
 
 	stage('Update Final Reports') {
     steps {
