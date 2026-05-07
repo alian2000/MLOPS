@@ -125,6 +125,56 @@ pipeline {
             }
 
         }
+	stage('Push AI Fixes') {
+
+    steps {
+
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'github-creds',
+                usernameVariable: 'GIT_USER',
+                passwordVariable: 'GIT_PASS'
+            )
+        ]) {
+
+            sh '''
+            cd ${PROJECT_PATH}
+
+            echo "📂 Current Path"
+            pwd
+
+            echo "📌 Git Status"
+            git status
+
+            echo "🌿 Current Branch"
+            git branch
+
+            echo "🔄 Checkout main"
+            git checkout main
+
+            echo "➕ Adding changes"
+            git add .
+
+            echo "📝 Commit changes"
+            git commit -m "🤖 AI Auto Fix" || true
+
+            echo "🔗 Setting remote"
+            git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/Rohitcs09/MLOPS.git
+
+            echo "⬇️ Pull latest"
+            git pull origin main --rebase || true
+
+            echo "⬆️ Push changes"
+            git push origin main --force
+
+            echo "✅ GitHub Updated"
+            '''
+
+        }
+
+    }
+
+}
 
         stage('Rebuild') {
 
