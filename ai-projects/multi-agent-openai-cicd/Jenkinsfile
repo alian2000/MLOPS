@@ -1,205 +1,88 @@
 pipeline {
-    agent any
+                cat src/main/java/com/demo/App.java
+                '''
+            }
+        }
 
-    tools {
-        maven 'Maven3'
-    }
+        stage('Commit AI Changes') {
+            when {
+                expression {
+                    return fileExists('ai-projects/multi-agent-openai-cicd/build_failed')
+                }
+            }
 
-    environment {
-        OPENAI_API_KEY = credentials('OPENAI_API_KEY')
-    }
+            steps {
 
-    stages {
+                withCredentials([usernamePassword(
+                    credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
+                    usernameVariable: 'GIT_USER',
+                    passwordVariable: 'GIT_PASS'
+                )]) {
 
-        stage('Build') {
+                    sh '''
+                    cd $PROJECT_DIR
+
+                    git config user.email "jenkins@ai.com"
+                    git config user.name "Jenkins AI Bot"
+
+                    git add .
+
+                    if git diff --cached --quiet
+                    then
+                        echo "No changes"
+                    else
+                        git commit -m "[ai] auto-fix by multi-agent"
+
+                        git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
+
+                        git push origin HEAD:main --force
+                    fi
+                    '''
+                }
+            }
+        }
+
+        stage('Rebuild') {
+            when {
+                expression {
+                    return fileExists('ai-projects/multi-agent-openai-cicd/build_failed')
+                }
+            }
+
             steps {
                 sh '''
-                cd ai-projects/multi-agent-openai-cicd
+                cd $PROJECT_DIR
+
+                git pull origin main
 
                 mvn clean install -U > build.log 2>&1 || true
 
-                echo "===== BUILD LOG ====="
                 cat build.log
+
+                if grep -q "BUILD SUCCESS" build.log
+                then
+                    rm -f build_failed
+                    echo "SUCCESS"
+                else
+                    echo "FAILED"
+                    exit 1
+                fi
                 '''
             }
         }
 
-        stage('Project Agent') {
+        stage('Update Final Reports') {
             steps {
                 sh '''
-                cd ai-projects/multi-agent-openai-cicd
-                export PYTHONPATH=$(pwd)
+                cd $PROJECT_DIR
 
-                echo "🤖 Project Agent..."
-                python3 agents/project_agent.py || true
+                echo "BUILD SUCCESS" > reports/final_status.txt
+
+                cp build.log reports/final_build.log
+
+                echo "Reports Updated"
                 '''
             }
         }
-
-        stage('Security Agent') {
-            steps {
-                sh '''
-                cd ai-projects/multi-agent-openai-cicd
-                export PYTHONPATH=$(pwd)
-
-                echo "🔐 Security Agent..."
-                python3 agents/security_agent.py || true
-                '''
-            }
-        }
-
-	stage('Combine Reports') {
-    steps {
-        sh '''
-        cd ai-projects/multi-agent-openai-cicd
-
-        mkdir -p reports
-
-        echo "📊 Creating combined report..."
-
-        touch reports/combined.txt
-
-        echo "===== BUILD LOG =====" > reports/combined.txt
-
-        if [ -f build.log ]; then
-            cat build.log >> reports/combined.txt
-        fi
-
-        echo "\n===== PROJECT REPORT =====" >> reports/combined.txt
-
-        if [ -f reports/project.json ]; then
-            cat reports/project.json >> reports/combined.txt
-        fi
-
-        echo "\n===== SECURITY REPORT =====" >> reports/combined.txt
-
-        if [ -f reports/security.json ]; then
-            cat reports/security.json >> reports/combined.txt
-        fi
-
-        echo "✅ combined.txt created"
-
-        ls -R reports
-        '''
     }
 }
-
-        stage('AI Decision') {
-            steps {
-                sh '''
-                cd ai-projects/multi-agent-openai-cicd
-                export PYTHONPATH=$(pwd)
-
-                echo "🧠 AI Decision..."
-                python3 agents/decision_agent.py || true
-                '''
-            }
-        }
-
-
-
-
-       stage('Commit AI Changes') {
-
-    when {
-        expression {
-            return fileExists('ai-projects/multi-agent-openai-cicd/build_failed')
-        }
-    }
-
-    steps {
-
-        withCredentials([usernamePassword(
-            credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
-            usernameVariable: 'GIT_USER',
-            passwordVariable: 'GIT_PASS'
-        )]) {
-
-            sh '''
-            cd ai-projects/multi-agent-openai-cicd
-
-            git config user.email "jenkins@ai.com"
-            git config user.name "Jenkins AI Bot"
-
-            git add .
-
-            if git diff --cached --quiet
-            then
-                echo "⚠️ No changes detected"
-            else
-
-                git commit -m "[ai] auto-fix by multi-agent system"
-
-                git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
-
-                echo "⬆️ Force pushing AI fixes..."
-
-                git push origin HEAD:main --force
-
-                echo "✅ AI changes pushed successfully"
-            fi
-            '''
-        }
-    }
-}
-
-
-
-      stage('Rebuild') {
-
-    when {
-        expression {
-            return fileExists('ai-projects/multi-agent-openai-cicd/build_failed')
-        }
-    }
-
-    steps {
-
-        sh '''
-        cd ai-projects/multi-agent-openai-cicd
-
-        echo "⬇️ Pulling latest AI-fixed code..."
-
-        git pull origin main
-
-        echo "📄 Updated pom.xml:"
-        cat pom.xml
-
-        echo "🚀 Rebuilding project..."
-
-        mvn clean install -U | tee build.log
-
-        rm -f build_failed
-
-        echo "✅ Build recovered successfully"
-        '''
-    }
-}
-
-
-
-	stage('Update Final Reports') {
-    steps {
-
-        sh '''
-        cd ai-projects/multi-agent-openai-cicd
-
-        mkdir -p reports
-
-        echo "BUILD SUCCESS" > reports/final_status.txt
-
-        echo "===== FINAL BUILD LOG =====" > reports/final_report.txt
-
-        cat build.log >> reports/final_report.txt
-
-        echo "✅ Reports Updated"
-        '''
-    }
-}
-    }
-}
-
-
-
-
-

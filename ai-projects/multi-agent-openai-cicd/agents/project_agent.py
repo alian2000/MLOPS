@@ -1,18 +1,26 @@
-from utils.openai_client import ask_gpt
+import json
 
-log = open("build.log").read()
+print("🤖 Project Agent analyzing build.log...")
 
-prompt = f"""
-Analyze this Maven build log.
-Find:
-- error type
-- root cause
+with open("build.log", "r") as f:
+    log = f.read()
 
-LOG:
-{log}
-"""
+report = {
+    "status": "SUCCESS",
+    "issues": []
+}
 
-result = ask_gpt(prompt)
+if "COMPILATION ERROR" in log:
+    report["status"] = "FAILED"
+    report["issues"].append("Java compilation error")
 
-print("📊 Project Agent Report:")
-print(result)
+if "';' expected" in log:
+    report["issues"].append("Missing semicolon in Java code")
+
+if "BUILD FAILURE" in log:
+    report["status"] = "FAILED"
+
+with open("reports/project_report.json", "w") as f:
+    json.dump(report, f, indent=4)
+
+print(report)

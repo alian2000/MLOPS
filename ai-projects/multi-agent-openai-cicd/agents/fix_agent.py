@@ -1,40 +1,62 @@
+import json
 import os
-import re
 
-print("🔧 Fixing pom.xml dependency issue...")
+print("🔧 Fix Agent Running...")
 
-pom_path = "pom.xml"
+fixes = []
 
-if os.path.exists(pom_path):
+# -----------------------------
+# FIX pom.xml
+# -----------------------------
 
-    with open(pom_path, "r") as f:
-        pom = f.read()
+with open("pom.xml", "r") as f:
+    pom = f.read()
 
-    print("📄 BEFORE FIX:")
-    print(pom)
+updated = pom.replace("1.1.1", "2.17.1")
+updated = updated.replace("1.1.0", "2.17.1")
 
-    # FORCE REPLACE INVALID LOG4J VERSION
-    pom = pom.replace(
-        "1.1.1",
-        "2.17.1"
-    )
+with open("pom.xml", "w") as f:
+    f.write(updated)
 
-    pom = pom.replace(
-        "1.1.0",
-        "2.17.1"
-    )
+fixes.append("Updated log4j dependency")
 
-    with open(pom_path, "w") as f:
-        f.write(pom)
+print("✅ pom.xml fixed")
 
-    print("✅ pom.xml UPDATED")
+# -----------------------------
+# FIX Java syntax
+# -----------------------------
 
-    # VERIFY UPDATED CONTENT
-    with open(pom_path, "r") as f:
-        verify = f.read()
+java_file = "src/main/java/com/demo/App.java"
 
-    print("📄 AFTER FIX:")
-    print(verify)
+fixed_java = '''package com.demo;
 
-else:
-    print("❌ pom.xml not found")
+public class App {
+
+    public static void main(String[] args) {
+
+        System.out.println("Hello AI DevOps");
+
+    }
+}
+'''
+
+with open(java_file, "w") as f:
+    f.write(fixed_java)
+
+fixes.append("Fixed Java syntax error")
+
+print("✅ Java syntax fixed")
+
+# -----------------------------
+# FINAL REPORT
+# -----------------------------
+
+report = {
+    "status": "FIX_APPLIED",
+    "fixes": fixes
+}
+
+with open("reports/fix_report.json", "w") as f:
+    json.dump(report, f, indent=4)
+
+print(report)

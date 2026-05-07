@@ -1,18 +1,28 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-  <groupId>com.demo</groupId>
-  <artifactId>ai-cicd</artifactId>
-  <version>1.0</version>
+    <modelVersion>4.0.0</modelVersion>
 
-  <dependencies>
+    <groupId>com.demo</groupId>
+    <artifactId>ai-cicd</artifactId>
+    <version>1.0</version>
 
-    <!-- ❌ vulnerable version -->
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core</artifactId>
-      <version>1.1.1</version>
-    </dependency>
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
 
-  </dependencies>
+    <dependencies>
+
+        <!-- INTENTIONALLY BROKEN -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+
+    </dependencies>
+
 </project>

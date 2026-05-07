@@ -1,19 +1,24 @@
-from utils.openai_client import ask_gpt
+import json
 
-pom = open("pom.xml").read()
+print("🔐 Security Agent analyzing pom.xml...")
 
-prompt = f"""
-Check this pom.xml for:
-- vulnerable dependencies
-- invalid versions
+with open("pom.xml", "r") as f:
+    pom = f.read()
 
-Return issues clearly.
+report = {
+    "status": "SUCCESS",
+    "issues": []
+}
 
-POM:
-{pom}
-"""
+if "1.1.1" in pom:
+    report["status"] = "FAILED"
+    report["issues"].append("Invalid log4j version detected")
 
-result = ask_gpt(prompt)
+if "1.1.0" in pom:
+    report["status"] = "FAILED"
+    report["issues"].append("Old vulnerable log4j version")
 
-print("🔐 Security Report:")
-print(result)
+with open("reports/security_report.json", "w") as f:
+    json.dump(report, f, indent=4)
+
+print(report)

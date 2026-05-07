@@ -1,27 +1,26 @@
-import os
-from utils.openai_client import ask_gpt
+import json
 
-report_path = "reports/combined.txt"
+with open("reports/project_report.json") as f:
+    project = json.load(f)
 
-if not os.path.exists(report_path):
-    print("❌ combined.txt not found")
-    exit(1)
+with open("reports/security_report.json") as f:
+    security = json.load(f)
 
-report = open(report_path).read()
+final = {
+    "decision": "APPROVED",
+    "reasons": []
+}
 
-prompt = f"""
-Based on this report decide:
+if project["status"] == "FAILED":
+    final["decision"] = "REJECTED"
+    final["reasons"].extend(project["issues"])
 
-APPROVE or REJECT build.
+if security["status"] == "FAILED":
+    final["decision"] = "REJECTED"
+    final["reasons"].extend(security["issues"])
 
-REPORT:
-{report}
-"""
-
-decision = ask_gpt(prompt)
+with open("reports/decision_report.json", "w") as f:
+    json.dump(final, f, indent=4)
 
 print("🧠 AI Decision:")
-print(decision)
-
-if "REJECT" in decision.upper():
-    open("build_failed", "w").write("failed")
+print(final)
