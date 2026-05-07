@@ -1,18 +1,4 @@
 pipeline {
-                cat src/main/java/com/demo/App.java
-                '''
-            }
-        }
-
-        stage('Commit AI Changes') {
-            when {
-                expression {
-                    return fileExists('ai-projects/multi-agent-openai-cicd/build_failed')
-                }
-            }
-
-            steps {
-
                 withCredentials([usernamePassword(
                     credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
                     usernameVariable: 'GIT_USER',
