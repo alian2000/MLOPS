@@ -4,32 +4,26 @@ import json
 print("🔧 Fix Agent Started...")
 
 # ------------------------------------------------
-# PROJECT ROOT
+# ABSOLUTE PROJECT ROOT
 # ------------------------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-PROJECT_ROOT = os.path.abspath(
-    os.path.join(BASE_DIR, "..")
-)
+PROJECT_ROOT = "/var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd"
 
-# ------------------------------------------------
-# REPORTS DIRECTORY
-# ------------------------------------------------
 REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
 
 os.makedirs(REPORTS_DIR, exist_ok=True)
 
-# ------------------------------------------------
-# FIX REPORT
-# ------------------------------------------------
 fix_report = {
     "fixes_applied": []
 }
 
 # ------------------------------------------------
-# FIX 1 → INVALID LOG4J VERSION
+# FIX POM.XML
 # ------------------------------------------------
+
 pom_file = os.path.join(PROJECT_ROOT, "pom.xml")
+
+print(f"📄 Editing: {pom_file}")
 
 if os.path.exists(pom_file):
 
@@ -38,58 +32,31 @@ if os.path.exists(pom_file):
 
     if "1.1.1" in pom:
 
-        print("🔧 Fixing log4j version...")
-
         pom = pom.replace("1.1.1", "2.17.1")
 
         with open(pom_file, "w") as f:
             f.write(pom)
 
-        print("✅ Fixed log4j version")
+        print("✅ log4j version updated")
 
         fix_report["fixes_applied"].append(
-            "Updated log4j version from 1.1.1 to 2.17.1"
+            "Updated log4j version"
         )
 
 # ------------------------------------------------
-# FIX 2 → JAVA SYNTAX ERROR
+# FIX JAVA FILE
 # ------------------------------------------------
 
 java_file = os.path.join(
     PROJECT_ROOT,
-    "src/main/java/App.java"
+    "src/main/java/com/demo/App.java"
 )
 
-# fallback path
-if not os.path.exists(java_file):
-
-    java_file = os.path.join(
-        PROJECT_ROOT,
-        "src/main/java/com/demo/App.java"
-    )
+print(f"📄 Editing: {java_file}")
 
 if os.path.exists(java_file):
 
-    with open(java_file, "r") as f:
-        code = f.read()
-
-    syntax_issue = False
-
-    # detect broken patterns
-    if ');)' in code:
-        syntax_issue = True
-
-    if '"))' in code:
-        syntax_issue = True
-
-    if 'System.out.println("Hello AI DevOps")' in code:
-        syntax_issue = True
-
-    if syntax_issue:
-
-        print("🔧 Fixing Java syntax issue...")
-
-        fixed_code = """
+    fixed_code = '''
 package com.demo;
 
 public class App {
@@ -101,29 +68,33 @@ public class App {
     }
 
 }
-"""
+'''
 
-        with open(java_file, "w") as f:
-            f.write(fixed_code)
+    with open(java_file, "w") as f:
+        f.write(fixed_code)
 
-        print("✅ Java syntax fixed")
+    print("✅ Java syntax fixed")
 
-        fix_report["fixes_applied"].append(
-            "Fixed Java compilation syntax issue"
-        )
+    fix_report["fixes_applied"].append(
+        "Fixed Java syntax"
+    )
+
+else:
+
+    print("❌ App.java not found")
 
 # ------------------------------------------------
-# SAVE JSON REPORT
+# SAVE REPORT
 # ------------------------------------------------
 
-report_file = os.path.join(
+report_path = os.path.join(
     REPORTS_DIR,
     "fix_report.json"
 )
 
-with open(report_file, "w") as f:
+with open(report_path, "w") as f:
     json.dump(fix_report, f, indent=4)
 
-print("✅ Fix report generated")
+print("✅ fix_report.json generated")
 
 print("🎉 Fix Agent Completed")
