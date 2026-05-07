@@ -2,23 +2,27 @@ import os
 import json
 from openai import OpenAI
 
-# -----------------------------------
+# ------------------------------------------------
 # CONFIG
-# -----------------------------------
+# ------------------------------------------------
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY")
+)
 
-BASE_PATH = "ai-devops-maven"
+BASE_PATH = os.getcwd()
 
 LOG_FILE = f"{BASE_PATH}/build.log"
+
 JAVA_FILE = f"{BASE_PATH}/src/main/java/App.java"
+
 POM_FILE = f"{BASE_PATH}/pom.xml"
 
-REPORT_DIR = "reports"
+REPORT_DIR = f"{BASE_PATH}/reports"
 
-# -----------------------------------
-# HELPERS
-# -----------------------------------
+# ------------------------------------------------
+# READ FILE
+# ------------------------------------------------
 
 def read_file(path):
 
@@ -29,31 +33,33 @@ def read_file(path):
 
     return ""
 
+# ------------------------------------------------
+# WRITE FILE
+# ------------------------------------------------
 
 def write_file(path, content):
 
     with open(path, "w") as f:
         f.write(content)
 
-
-# -----------------------------------
+# ------------------------------------------------
 # ASK OPENAI
-# -----------------------------------
+# ------------------------------------------------
 
-def ask_ai(log, java_code, pom):
+def ask_openai(log, java_code, pom):
 
     prompt = f"""
 You are an autonomous DevOps AI Agent.
 
 A Maven build failed.
 
-Analyze the logs carefully and FIX ALL ISSUES.
+Fix ALL issues automatically.
 
 Possible issues:
-- Java syntax errors
-- Invalid dependencies
-- Maven build failures
-- Compilation errors
+- Java syntax error
+- Invalid dependency
+- Compilation error
+- Maven failure
 
 BUILD LOG:
 {log}
@@ -65,10 +71,7 @@ POM.XML:
 {pom}
 
 IMPORTANT:
-1. Return COMPLETE updated Java code
-2. Return COMPLETE updated pom.xml
-3. Do NOT explain anything
-4. Return ONLY in this format
+Return ONLY this format.
 
 ---JAVA---
 <complete fixed java code>
@@ -78,7 +81,9 @@ IMPORTANT:
 """
 
     response = client.chat.completions.create(
+
         model="gpt-4.1-mini",
+
         messages=[
             {
                 "role": "user",
@@ -89,41 +94,53 @@ IMPORTANT:
 
     return response.choices[0].message.content
 
-
-# -----------------------------------
+# ------------------------------------------------
 # APPLY FIX
-# -----------------------------------
+# ------------------------------------------------
 
 def apply_fix(ai_output):
 
-    if "---JAVA---" not in ai_output or "---POM---" not in ai_output:
+    if "---JAVA---" not in ai_output:
 
-        print("❌ Invalid AI response format")
+        print("❌ Invalid AI response")
+        return False
+
+    if "---POM---" not in ai_output:
+
+        print("❌ Invalid AI response")
         return False
 
     try:
 
-        java_part = ai_output.split("---JAVA---")[1].split("---POM---")[0]
+        java_code = ai_output.split(
+            "---JAVA---"
+        )[1].split(
+            "---POM---"
+        )[0]
 
-        pom_part = ai_output.split("---POM---")[1]
+        pom_code = ai_output.split(
+            "---POM---"
+        )[1]
 
-        print("📄 Updating App.java...")
-        write_file(JAVA_FILE, java_part.strip())
+        print("📄 Updating App.java")
 
-        print("📄 Updating pom.xml...")
-        write_file(POM_FILE, pom_part.strip())
+        write_file(JAVA_FILE, java_code.strip())
+
+        print("📄 Updating pom.xml")
+
+        write_file(POM_FILE, pom_code.strip())
 
         return True
 
     except Exception as e:
 
-        print(f"❌ Failed applying fix: {e}")
+        print(f"❌ Error applying fix: {e}")
+
         return False
 
-
-# -----------------------------------
-# GENERATE REPORT
-# -----------------------------------
+# ------------------------------------------------
+# REPORT
+# ------------------------------------------------
 
 def generate_report():
 
@@ -138,43 +155,18 @@ def generate_report():
     }
 
     with open(f"{REPORT_DIR}/fix_report.json", "w") as f:
+
         json.dump(report, f, indent=4)
 
     print("✅ fix_report.json generated")
 
-
-# -----------------------------------
-# GITHUB PUSH
-# -----------------------------------
-
-def push_changes():
-
-    print("📤 Pushing AI fixes to GitHub...")
-
-    os.system('''
-    git config user.email "jenkins@ai.com"
-
-    git config user.name "AI Fix Agent"
-
-    git checkout main || true
-
-    git add .
-
-    git commit -m "[AI] Auto Fix Applied" || true
-
-    git push origin HEAD:main --force
-    ''')
-
-    print("✅ GitHub updated")
-
-
-# -----------------------------------
+# ------------------------------------------------
 # MAIN
-# -----------------------------------
+# ------------------------------------------------
 
 def main():
 
-    print("🤖 AI Agent Started...")
+    print("🤖 Fix Agent Started...")
 
     log = read_file(LOG_FILE)
 
@@ -189,9 +181,10 @@ def main():
 
     print("🧠 Asking OpenAI for fixes...")
 
-    ai_output = ask_ai(log, java_code, pom)
+    ai_output = ask_openai(log, java_code, pom)
 
     print("\n🤖 AI RESPONSE:\n")
+
     print(ai_output)
 
     fixed = apply_fix(ai_output)
@@ -202,13 +195,11 @@ def main():
 
         generate_report()
 
-        push_changes()
-
-        print("🎉 AI Self-Healing Completed")
+        print("🎉 Self-Healing Completed")
 
     else:
 
-        print("❌ AI Fix Failed")
+        print("❌ Fix failed")
 
 
 if __name__ == "__main__":
