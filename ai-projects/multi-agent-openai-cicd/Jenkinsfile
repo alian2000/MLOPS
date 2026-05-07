@@ -11,12 +11,55 @@ pipeline {
 
     stages {
 
-
-
-
-           stage('Build') {
+            stage('Clone Code') {
             steps {
-                sh 'mvn clean install -U > build.log || true'
+                git branch: 'main',
+                    credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
+                    url: 'https://github.com/Rohitcs09/MLOPS.git'
+            }
+        }
+
+
+        
+           stage('Skip AI Loop') {
+            steps {
+                script {
+                    def msg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
+                    echo "Last commit message: ${msg}"
+
+                    if (msg.contains("[ai]")) {
+                        echo "AI commit detected → stopping loop"
+                        currentBuild.result = 'SUCCESS'
+                        return
+                    }
+                }
+            }
+        }
+        
+
+
+
+
+          stage('Build with Maven') {
+            steps {
+                script {
+                    def status = sh(script: '''
+                        cd ai-projects/multi-agent-openai-cicd
+                        mvn clean install -U > build.log 2>&1
+                    ''', returnStatus: true)
+
+                    def log = readFile 'ai-projects/multi-agent-openai-cicd/build.log'
+                    echo "===== BUILD LOG START ====="
+                    echo log
+                    echo "===== BUILD LOG END ====="
+
+                    if (status != 0) {
+                        echo "❌ Build Failed"
+                        writeFile file: 'ai-projects/multi-agent-openai-cicd/build_failed', text: 'failed'
+                    } else {
+                        echo "✅ Build Passed"
+                    }
+                }
             }
         }
 
@@ -35,7 +78,6 @@ pipeline {
             }
         }
 
- 
 
         stage('Combine Report') {
     steps {
