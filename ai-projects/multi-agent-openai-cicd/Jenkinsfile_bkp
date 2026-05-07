@@ -71,44 +71,5 @@ pipeline {
                 sh 'python3 ai-projects/multi-agent-openai-cicd/agents/fix_agent.py'
             }
         }
-
-        stage('Push AI Fixes to GitHub') {
-    steps {
-        withCredentials([usernamePassword(
-            credentialsId: 'github-creds',
-            usernameVariable: 'GIT_USER',
-            passwordVariable: 'GIT_PASS'
-        )]) {
-
-            sh '''
-            cd ai-projects/multi-agent-openai-cicd
-
-            echo "📦 Git Status"
-            git status
-
-            git config user.email "jenkins@ai.com"
-            git config user.name "AI Fix Agent"
-
-            git add -A
-
-            if git diff --cached --quiet; then
-                echo "⚠️ No changes to commit"
-                exit 0
-            fi
-
-            git commit -m "[AI] Auto Fix Applied"
-
-            git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
-
-            echo "🚀 Pushing to GitHub..."
-            git push origin main --force
-
-            echo "✅ GitHub Updated"
-            '''
-        }
-    }
-}
-
-
     }
 }
