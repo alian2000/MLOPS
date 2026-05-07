@@ -38,6 +38,8 @@ if os.path.exists(pom_file):
 
     if "1.1.1" in pom:
 
+        print("🔧 Fixing log4j version...")
+
         pom = pom.replace("1.1.1", "2.17.1")
 
         with open(pom_file, "w") as f:
@@ -52,36 +54,42 @@ if os.path.exists(pom_file):
 # ------------------------------------------------
 # FIX 2 → JAVA SYNTAX ERROR
 # ------------------------------------------------
+
 java_file = os.path.join(
     PROJECT_ROOT,
-    "src/main/java/com/demo/App.java"
+    "src/main/java/App.java"
 )
+
+# fallback path
+if not os.path.exists(java_file):
+
+    java_file = os.path.join(
+        PROJECT_ROOT,
+        "src/main/java/com/demo/App.java"
+    )
 
 if os.path.exists(java_file):
 
     with open(java_file, "r") as f:
         code = f.read()
 
-    # Broken syntax examples
-    broken_patterns = [
-        'System.out.println("Hello AI DevOps")',
-        'System.out.println("Hello AI DevOps");)',
-        'System.out.println("Hello AI DevOps"))',
-    ]
+    syntax_issue = False
 
-    found_issue = False
+    # detect broken patterns
+    if ');)' in code:
+        syntax_issue = True
 
-    for pattern in broken_patterns:
+    if '"))' in code:
+        syntax_issue = True
 
-        if pattern in code:
+    if 'System.out.println("Hello AI DevOps")' in code:
+        syntax_issue = True
 
-            found_issue = True
+    if syntax_issue:
 
-            break
+        print("🔧 Fixing Java syntax issue...")
 
-    if found_issue:
-
-        fixed_code = '''
+        fixed_code = """
 package com.demo;
 
 public class App {
@@ -93,20 +101,21 @@ public class App {
     }
 
 }
-'''
+"""
 
         with open(java_file, "w") as f:
             f.write(fixed_code)
 
-        print("✅ Fixed Java syntax error")
+        print("✅ Java syntax fixed")
 
         fix_report["fixes_applied"].append(
-            "Fixed Java syntax error in App.java"
+            "Fixed Java compilation syntax issue"
         )
 
 # ------------------------------------------------
 # SAVE JSON REPORT
 # ------------------------------------------------
+
 report_file = os.path.join(
     REPORTS_DIR,
     "fix_report.json"
@@ -116,6 +125,5 @@ with open(report_file, "w") as f:
     json.dump(fix_report, f, indent=4)
 
 print("✅ Fix report generated")
-
 
 print("🎉 Fix Agent Completed")
