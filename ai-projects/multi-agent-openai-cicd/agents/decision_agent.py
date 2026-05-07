@@ -1,9 +1,9 @@
 import json
 
-with open("reports/project_report.json") as f:
+with open("ai-projects/multi-agent-openai-cicd/reports/project.json") as f:
     project = json.load(f)
 
-with open("reports/security_report.json") as f:
+with open("ai-projects/multi-agent-openai-cicd/reports/security.json") as f:
     security = json.load(f)
 
 final = {
