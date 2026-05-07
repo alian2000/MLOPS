@@ -75,7 +75,7 @@ pipeline {
         stage('Push AI Fixes to GitHub') {
     steps {
         withCredentials([usernamePassword(
-            credentialsId: 'github-creds',
+            credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
             usernameVariable: 'GIT_USER',
             passwordVariable: 'GIT_PASS'
         )]) {
@@ -106,6 +106,20 @@ pipeline {
             echo "✅ GitHub Updated"
             '''
         }
+    }
+}
+    
+    stage('Rebuild After Fix') {
+    steps {
+        sh '''
+        cd ai-projects/multi-agent-openai-cicd
+
+        echo "🔁 Rebuilding project after AI fix..."
+
+        mvn clean install -U > build.log 2>&1
+
+        echo "📄 Build completed"
+        '''
     }
 }
 
