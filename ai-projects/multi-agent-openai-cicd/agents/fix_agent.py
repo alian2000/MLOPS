@@ -14,9 +14,9 @@ BASE_PATH = os.getcwd()
 
 
 JAVA_FILE = os.path.join(BASE_PATH, "ai-projects/multi-agent-openai-cicd/src/main/java/App.java")
-POM_FILE = os.path.join(BASE_PATH, "pom.xml")
-LOG_FILE = os.path.join(BASE_PATH, "build.log")
-REPORT_DIR = os.path.join(BASE_PATH, "reports")
+POM_FILE = os.path.join(BASE_PATH, "ai-projects/multi-agent-openai-cicd/pom.xml")
+LOG_FILE = os.path.join(BASE_PATH, "ai-projects/multi-agent-openai-cicd/build.log")
+REPORT_DIR = os.path.join(BASE_PATH, "ai-projects/multi-agent-openai-cicd/reports")
 
 # ------------------------------------------------
 # READ FILE
