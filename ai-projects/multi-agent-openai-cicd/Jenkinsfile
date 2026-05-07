@@ -1,74 +1,158 @@
 pipeline {
-                withCredentials([usernamePassword(
-                    credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
-                    usernameVariable: 'GIT_USER',
-                    passwordVariable: 'GIT_PASS'
-                )]) {
+
+    agent any
+
+    tools {
+        maven 'Maven3'
+    }
+
+    environment {
+        PROJECT_PATH = "ai-projects/multi-agent-openai-cicd"
+    }
+
+    stages {
+
+        stage('Clone Check') {
+            steps {
+                echo "Repository cloned successfully"
+            }
+        }
+
+        stage('Build') {
+
+            steps {
+
+                script {
 
                     sh '''
-                    cd $PROJECT_DIR
+                    cd ${PROJECT_PATH}
 
-                    git config user.email "jenkins@ai.com"
-                    git config user.name "Jenkins AI Bot"
+                    mkdir -p reports
 
-                    git add .
+                    mvn clean install -U > build.log 2>&1
 
-                    if git diff --cached --quiet
-                    then
-                        echo "No changes"
-                    else
-                        git commit -m "[ai] auto-fix by multi-agent"
-
-                        git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
-
-                        git push origin HEAD:main --force
-                    fi
+                    echo $? > build_status.txt
                     '''
+
+                    def status = readFile(
+                        "${PROJECT_PATH}/build_status.txt"
+                    ).trim()
+
+                    if (status != '0') {
+
+                        echo "❌ Build Failed"
+
+                        writeFile(
+                            file: "${PROJECT_PATH}/build_failed",
+                            text: "failed"
+                        )
+
+                    } else {
+
+                        echo "✅ Build Passed"
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        stage('Project Agent') {
+            steps {
+
+                sh '''
+                cd ${PROJECT_PATH}
+
+                export PYTHONPATH=$(pwd)
+
+                python3 agents/project_agent.py
+                '''
+
+            }
+        }
+
+        stage('Security Agent') {
+            steps {
+
+                sh '''
+                cd ${PROJECT_PATH}
+
+                export PYTHONPATH=$(pwd)
+
+                python3 agents/security_agent.py
+                '''
+
+            }
+        }
+
+        stage('Decision Agent') {
+            steps {
+
+                sh '''
+                cd ${PROJECT_PATH}
+
+                export PYTHONPATH=$(pwd)
+
+                python3 agents/decision_agent.py
+                '''
+
+            }
+        }
+
+        stage('Fix Agent') {
+
+            when {
+                expression {
+                    return fileExists("${PROJECT_PATH}/build_failed")
                 }
             }
+
+            steps {
+
+                sh '''
+                cd ${PROJECT_PATH}
+
+                export PYTHONPATH=$(pwd)
+
+                python3 agents/fix_agent.py
+                '''
+
+            }
+
         }
 
         stage('Rebuild') {
+
             when {
                 expression {
-                    return fileExists('ai-projects/multi-agent-openai-cicd/build_failed')
+                    return fileExists("${PROJECT_PATH}/build_failed")
                 }
             }
 
             steps {
+
                 sh '''
-                cd $PROJECT_DIR
+                cd ${PROJECT_PATH}
 
-                git pull origin main
-
-                mvn clean install -U > build.log 2>&1 || true
-
-                cat build.log
-
-                if grep -q "BUILD SUCCESS" build.log
-                then
-                    rm -f build_failed
-                    echo "SUCCESS"
-                else
-                    echo "FAILED"
-                    exit 1
-                fi
+                mvn clean install -U
                 '''
+
             }
+
         }
 
-        stage('Update Final Reports') {
-            steps {
-                sh '''
-                cd $PROJECT_DIR
-
-                echo "BUILD SUCCESS" > reports/final_status.txt
-
-                cp build.log reports/final_build.log
-
-                echo "Reports Updated"
-                '''
-            }
-        }
     }
+
+    post {
+
+        always {
+
+            archiveArtifacts artifacts: '**/reports/*.json', fingerprint: true
+
+        }
+
+    }
+
 }
