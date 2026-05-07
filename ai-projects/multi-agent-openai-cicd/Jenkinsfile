@@ -3,7 +3,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven'
+        maven 'Maven333'
     }
 
     environment {
@@ -18,6 +18,8 @@ pipeline {
         stage('Clone Repository') {
 
             steps {
+
+                deleteDir()
 
                 git branch: 'main',
                 url: 'https://github.com/Rohitcs09/MLOPS.git'
@@ -81,7 +83,7 @@ pipeline {
                 sh '''
                 cd ${PROJECT_PATH}
 
-                export PYTHONPATH=$(pwd)
+                mkdir -p reports
 
                 echo "🤖 Running Project Agent..."
 
@@ -106,7 +108,7 @@ pipeline {
                 sh '''
                 cd ${PROJECT_PATH}
 
-                export PYTHONPATH=$(pwd)
+                mkdir -p reports
 
                 echo "🔐 Running Security Agent..."
 
@@ -138,7 +140,7 @@ pipeline {
                     sh '''
                     cd ${PROJECT_PATH}
 
-                    export PYTHONPATH=$(pwd)
+                    export OPENAI_API_KEY=$OPENAI_API_KEY
 
                     echo "🧠 Running Decision Agent..."
 
@@ -151,58 +153,118 @@ pipeline {
         // ------------------------------------------------
         // 🔧 FIX AGENT
         // ------------------------------------------------
+        stage('Fix Agent') {
 
+            when {
+                expression {
+                    return fileExists("${PROJECT_PATH}/build_failed")
+                }
+            }
 
+            steps {
 
-         stage('Fix Agent') {
+                withCredentials([
 
-    when {
-        expression {
-            return fileExists("${PROJECT_PATH}/build_failed")
+                    string(
+                        credentialsId: 'OPENAI_API_KEY',
+                        variable: 'OPENAI_API_KEY'
+                    ),
+
+                    usernamePassword(
+                        credentialsId: 'github-creds',
+                        usernameVariable: 'GIT_USER',
+                        passwordVariable: 'GIT_PASS'
+                    )
+
+                ]) {
+
+                    sh '''
+                    cd ${PROJECT_PATH}
+
+                    export OPENAI_API_KEY=$OPENAI_API_KEY
+
+                    echo "📄 Showing Fix Agent"
+
+                    cat agents/fix_agent.py
+
+                    echo "🤖 Running Fix Agent..."
+
+                    python3 agents/fix_agent.py
+
+                    echo "📄 Updated pom.xml"
+
+                    cat pom.xml || true
+
+                    echo "📄 Updated App.java"
+
+                    cat src/main/java/App.java || true
+                    '''
+                }
+            }
         }
-    }
 
-    steps {
+        // ------------------------------------------------
+        // 📤 PUSH AI FIXES
+        // ------------------------------------------------
+        stage('Push AI Fixes') {
 
-        withCredentials([
+            when {
+                expression {
+                    return fileExists("${PROJECT_PATH}/build_failed")
+                }
+            }
 
-            string(
-                credentialsId: 'OPENAI_API_KEY',
-                variable: 'OPENAI_API_KEY'
-            ),
+            steps {
 
-            usernamePassword(
-                credentialsId: 'github-creds',
-                usernameVariable: 'GIT_USER',
-                passwordVariable: 'GIT_PASS'
-            )
+                withCredentials([
 
-        ]) {
+                    usernamePassword(
+                        credentialsId: 'github-creds',
+                        usernameVariable: 'GIT_USER',
+                        passwordVariable: 'GIT_PASS'
+                    )
 
-            sh '''
-            cd ${PROJECT_PATH}
+                ]) {
 
-            echo "📄 Showing Fix Agent File"
+                    sh '''
+                    cd ${PROJECT_PATH}
 
-            cat agents/fix_agent.py
+                    git config user.email "jenkins@ai.com"
 
-            export PYTHONPATH=$(pwd)
+                    git config user.name "AI Fix Agent"
 
-            export OPENAI_API_KEY=$OPENAI_API_KEY
+                    git checkout main || true
 
-            echo "🤖 Running Fix Agent..."
+                    git add .
 
-            python3 agents/fix_agent.py
-            '''
+                    if git diff --cached --quiet; then
+
+                        echo "⚠️ No changes detected"
+
+                    else
+
+                        echo "📝 Commiting AI fixes..."
+
+                        git commit -m "[AI] Auto Fix Applied"
+
+                        git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
+
+                        echo "⬆️ Pushing AI fixes..."
+
+                        git push origin HEAD:main --force
+
+                        echo "✅ GitHub Updated"
+
+                    fi
+                    '''
+                }
+            }
         }
-    }
-}
-
 
         // ------------------------------------------------
         // 🔁 REBUILD
         // ------------------------------------------------
-        stage('Rebuild After Fix') {
+        stage('Rebuild') {
 
             when {
                 expression {
@@ -214,15 +276,15 @@ pipeline {
 
                 script {
 
-                    def rebuildStatus = sh(script: '''
+                    def rebuild = sh(script: '''
                     cd ${PROJECT_PATH}
 
-                    echo "🔁 Rebuilding after AI fix..."
+                    echo "🔁 Rebuilding after AI Fix..."
 
                     mvn clean install -U
                     ''', returnStatus: true)
 
-                    if (rebuildStatus != 0) {
+                    if (rebuild != 0) {
 
                         error("❌ Build still failing")
 
@@ -239,9 +301,6 @@ pipeline {
         }
     }
 
-    // ------------------------------------------------
-    // 📦 REPORTS
-    // ------------------------------------------------
     post {
 
         always {
