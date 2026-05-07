@@ -21,8 +21,6 @@ pom_path = f"{PROJECT_ROOT}/pom.xml"
 
 if os.path.exists(pom_path):
 
-    print(f"📄 Updating {pom_path}")
-
     with open(pom_path, "r") as f:
         pom = f.read()
 
@@ -37,23 +35,13 @@ if os.path.exists(pom_path):
         "Updated log4j version"
     )
 
-else:
-
-    print("❌ pom.xml not found")
-
 # ------------------------------------------------
 # FIX APP.JAVA
 # ------------------------------------------------
 
 java_path = f"{PROJECT_ROOT}/src/main/java/App.java"
 
-if os.path.exists(java_path):
-
-    print(f"📄 Updating {java_path}")
-
-    fixed_java = '''
-package com.demo;
-
+fixed_java = '''
 public class App {
 
     public static void main(String[] args) {
@@ -65,18 +53,14 @@ public class App {
 }
 '''
 
-    with open(java_path, "w") as f:
-        f.write(fixed_java)
+with open(java_path, "w") as f:
+    f.write(fixed_java)
 
-    print("✅ App.java fixed")
+print("✅ App.java fixed")
 
-    fix_report["fixes_applied"].append(
-        "Fixed Java syntax error"
-    )
-
-else:
-
-    print("❌ App.java not found")
+fix_report["fixes_applied"].append(
+    "Fixed Java syntax error"
+)
 
 # ------------------------------------------------
 # SAVE REPORT
