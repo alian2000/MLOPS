@@ -72,56 +72,27 @@ pipeline {
             }
         }
 
-        stage('Push AI Fixes to GitHub') {
-    steps {
-        withCredentials([usernamePassword(
-            credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
-            usernameVariable: 'GIT_USER',
-            passwordVariable: 'GIT_PASS'
-        )]) {
 
-            sh '''
-            cd ai-projects/multi-agent-openai-cicd
 
-            echo "📦 Git Status"
-            git status
+         // ------------------------------- // 🤖 AI FIX STAGE // ------------------------------- stage('AI Fix') { when { expression { return fileExists('ai-projects/openai_self-healing-agent/build_failed') } } steps { script { echo "🤖 Running AI Fix..." withCredentials([ usernamePassword( credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS' ), string( credentialsId: 'OPENAI_API_KEY', variable: 'OPENAI_API_KEY' ) ]) { sh ''' cd ai-projects/openai_self-healing-agent echo "📂 Current Path:" pwd echo "📦 Installing dependencies..." python3 -m pip install --break-system-packages openai python-dotenv export OPENAI_API_KEY=$OPENAI_API_KEY echo "🤖 Running AI Agent..." python3 ai-agent.py echo "📄 Showing Updated Files" cat ai-devops-maven/pom.xml || true cat ai-devops-maven/src/main/java/App.java || true git config user.email "jenkins@ai.com" git config user.name "Jenkins AI Bot" git checkout main || true git add . if git diff --cached --quiet; then echo "⚠️ No changes detected" else echo "📝 Commiting AI fixes..." git commit -m "[ai] auto-fix dependency + syntax issue" git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/AI-DevOps.git echo "⬆️ Pushing AI fixes..." git push origin HEAD:main --force echo "✅ GitHub updated" fi ''' } } } } // ------------------------------- // 🔁 REBUILD AFTER FIX // ------------------------------- stage('Rebuild After Fix') { when { expression { return fileExists('ai-projects/openai_self-healing-agent/build_failed') } } steps { script { def status = sh(script: ''' cd ai-projects/openai_self-healing-agent/ai-devops-maven echo "🔁 Rebuilding after AI fix..." mvn clean install -U ''', returnStatus: true) if (status != 0) { error("❌ Build still failing after AI fix") } else { echo "✅ BUILD FIXED SUCCESSFULLY" } } } }
 
-            git config user.email "jenkins@ai.com"
-            git config user.name "AI Fix Agent"
 
-            git add -A
 
-            if git diff --cached --quiet; then
-                echo "⚠️ No changes to commit"
-                exit 0
-            fi
 
-            git commit -m "[AI] Auto Fix Applied"
 
-            git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
 
-            echo "🚀 Pushing to GitHub..."
-            git push origin main --force
 
-            echo "✅ GitHub Updated"
-            '''
-        }
-    }
-}
-    
-    stage('Rebuild After Fix') {
-    steps {
-        sh '''
-        cd ai-projects/multi-agent-openai-cicd
 
-        echo "🔁 Rebuilding project after AI fix..."
 
-        mvn clean install -U > build.log 2>&1
 
-        echo "📄 Build completed"
-        '''
-    }
-}
+
+
+
+
+
+
+
+
 
 
     }
