@@ -49,7 +49,7 @@ if os.path.exists(pom_file):
 
 java_file = os.path.join(
     PROJECT_ROOT,
-    "src/main/java/com/demo/App.java"
+    "src/main/java/App.java"
 )
 
 print(f"📄 Editing: {java_file}")
