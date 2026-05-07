@@ -29,13 +29,27 @@ pipeline {
             }
         }
 
+ 
+
         stage('Combine Report') {
-            steps {
-                sh '''
-                cat build.log > reports/combined.txt
-                '''
-            }
+    steps {
+        dir("ai-projects/multi-agent-openai-cicd") {
+            sh '''
+            echo "📁 Current dir:"
+            pwd
+
+            mkdir -p reports
+
+            echo "📊 Combining reports..."
+
+            cat reports/project.json reports/security.json > reports/combined.txt
+
+            echo "✅ Combined report created"
+            '''
         }
+    }
+}
+
 
         stage('Decision Agent') {
             steps {
