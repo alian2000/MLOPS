@@ -2,7 +2,7 @@ import json
 
 print("🔐 Security Agent analyzing pom.xml...")
 
-with open("pom.xml", "r") as f:
+with open("ai-projects/multi-agent-openai-cicd/pom.xml", "r") as f:
     pom = f.read()
 
 report = {
