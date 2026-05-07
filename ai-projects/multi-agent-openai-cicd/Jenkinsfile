@@ -13,19 +13,32 @@ pipeline {
 
 
 
-       stage('Build') {
+      stage('Build') {
     steps {
         dir("ai-projects/multi-agent-openai-cicd") {
-            sh '''
-            echo "🏗 Running Maven Build..."
 
-            mvn clean install -U > build.log 2>&1
+            script {
+                echo "🏗 Running Maven Build..."
 
-            ls -la build.log
-            '''
+                def status = sh(
+                    script: 'mvn clean install -U > build.log 2>&1',
+                    returnStatus: true
+                )
+
+                echo "📊 Maven Exit Code: ${status}"
+
+                sh 'tail -n 50 build.log || true'
+
+                if (status != 0) {
+                    error("❌ Maven Build FAILED (check build.log)")
+                }
+
+                echo "✅ Build SUCCESS"
+            }
         }
     }
 }
+
 
 
         stage('Project Agent') {
