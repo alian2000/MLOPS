@@ -3,13 +3,9 @@ import json
 
 print("🔧 Fix Agent Started...")
 
-# ------------------------------------------------
-# ABSOLUTE PROJECT ROOT
-# ------------------------------------------------
-
 PROJECT_ROOT = "/var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd"
 
-REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
+REPORTS_DIR = f"{PROJECT_ROOT}/reports"
 
 os.makedirs(REPORTS_DIR, exist_ok=True)
 
@@ -21,42 +17,41 @@ fix_report = {
 # FIX POM.XML
 # ------------------------------------------------
 
-pom_file = os.path.join(PROJECT_ROOT, "pom.xml")
+pom_path = f"{PROJECT_ROOT}/pom.xml"
 
-print(f"📄 Editing: {pom_file}")
+if os.path.exists(pom_path):
 
-if os.path.exists(pom_file):
+    print(f"📄 Updating {pom_path}")
 
-    with open(pom_file, "r") as f:
+    with open(pom_path, "r") as f:
         pom = f.read()
 
-    if "1.1.1" in pom:
+    pom = pom.replace("1.1.1", "2.17.1")
 
-        pom = pom.replace("1.1.1", "2.17.1")
+    with open(pom_path, "w") as f:
+        f.write(pom)
 
-        with open(pom_file, "w") as f:
-            f.write(pom)
+    print("✅ pom.xml fixed")
 
-        print("✅ log4j version updated")
+    fix_report["fixes_applied"].append(
+        "Updated log4j version"
+    )
 
-        fix_report["fixes_applied"].append(
-            "Updated log4j version"
-        )
+else:
+
+    print("❌ pom.xml not found")
 
 # ------------------------------------------------
-# FIX JAVA FILE
+# FIX APP.JAVA
 # ------------------------------------------------
 
-java_file = os.path.join(
-    PROJECT_ROOT,
-    "src/main/java/App.java"
-)
+java_path = f"{PROJECT_ROOT}/src/main/java/App.java"
 
-print(f"📄 Editing: {java_file}")
+if os.path.exists(java_path):
 
-if os.path.exists(java_file):
+    print(f"📄 Updating {java_path}")
 
-    fixed_code = '''
+    fixed_java = '''
 package com.demo;
 
 public class App {
@@ -70,13 +65,13 @@ public class App {
 }
 '''
 
-    with open(java_file, "w") as f:
-        f.write(fixed_code)
+    with open(java_path, "w") as f:
+        f.write(fixed_java)
 
-    print("✅ Java syntax fixed")
+    print("✅ App.java fixed")
 
     fix_report["fixes_applied"].append(
-        "Fixed Java syntax"
+        "Fixed Java syntax error"
     )
 
 else:
@@ -87,14 +82,11 @@ else:
 # SAVE REPORT
 # ------------------------------------------------
 
-report_path = os.path.join(
-    REPORTS_DIR,
-    "fix_report.json"
-)
+report_path = f"{REPORTS_DIR}/fix_report.json"
 
 with open(report_path, "w") as f:
     json.dump(fix_report, f, indent=4)
 
-print("✅ fix_report.json generated")
+print("✅ fix_report.json created")
 
 print("🎉 Fix Agent Completed")
