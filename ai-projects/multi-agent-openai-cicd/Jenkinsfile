@@ -98,7 +98,8 @@ pipeline {
 
 
 
-      stage('Commit AI Changes') {
+
+       stage('Commit AI Changes') {
 
     when {
         expression {
@@ -131,11 +132,9 @@ pipeline {
 
                 git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
 
-                echo "⬇️ Pulling latest changes..."
-                git pull origin main --rebase
+                echo "⬆️ Force pushing AI fixes..."
 
-                echo "⬆️ Pushing AI fixes..."
-                git push origin main
+                git push origin HEAD:main --force
 
                 echo "✅ AI changes pushed successfully"
             fi
@@ -143,6 +142,8 @@ pipeline {
         }
     }
 }
+
+
 
 
         stage('Rebuild') {
