@@ -18,46 +18,49 @@ pipeline {
             }
         }
 
-        stage('Build') {
 
-            steps {
 
-                script {
+       stage('Build') {
 
-                    sh '''
-                    cd ${PROJECT_PATH}
+    steps {
 
-                    mkdir -p reports
+        script {
 
-                    mvn clean install -U > build.log 2>&1
+            def status = sh(
+                script: '''
+                cd ai-projects/multi-agent-openai-cicd
 
-                    echo $? > build_status.txt
-                    '''
+                mkdir -p reports
 
-                    def status = readFile(
-                        "${PROJECT_PATH}/build_status.txt"
-                    ).trim()
+                mvn clean install -U > build.log 2>&1
+                ''',
+                returnStatus: true
+            )
 
-                    if (status != '0') {
+            echo "Build Status: ${status}"
 
-                        echo "❌ Build Failed"
+            if (status != 0) {
 
-                        writeFile(
-                            file: "${PROJECT_PATH}/build_failed",
-                            text: "failed"
-                        )
+                echo "❌ Build Failed"
 
-                    } else {
+                writeFile(
+                    file: 'ai-projects/multi-agent-openai-cicd/build_failed',
+                    text: 'failed'
+                )
 
-                        echo "✅ Build Passed"
+            } else {
 
-                    }
-
-                }
+                echo "✅ Build Success"
 
             }
 
         }
+
+    }
+
+}
+
+
 
         stage('Project Agent') {
             steps {
