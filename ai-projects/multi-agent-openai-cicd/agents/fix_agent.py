@@ -42,7 +42,7 @@ else:
 # FIX 1 : Invalid log4j dependency
 # --------------------------------
 
-pom_path = "pom.xml"
+pom_path = os.path.join(os.getcwd(), "pom.xml")
 
 if os.path.exists(pom_path):
 
