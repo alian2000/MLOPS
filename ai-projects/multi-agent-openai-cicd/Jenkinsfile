@@ -98,7 +98,8 @@ pipeline {
 
 
 
-                 stage('Commit AI Changes') {
+       stage('Commit AI Changes') {
+
     when {
         expression {
             return fileExists('ai-projects/multi-agent-openai-cicd/build_failed')
@@ -108,7 +109,7 @@ pipeline {
     steps {
 
         withCredentials([usernamePassword(
-            credentialsId: 'YOUR_GITHUB_CREDENTIAL_ID',
+            credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
             usernameVariable: 'GIT_USER',
             passwordVariable: 'GIT_PASS'
         )]) {
@@ -131,12 +132,13 @@ pipeline {
 
                 git push origin main
 
-                echo "✅ AI changes pushed"
+                echo "✅ AI changes pushed to GitHub"
             fi
             '''
         }
     }
 }
+
 
 
         stage('Rebuild') {
