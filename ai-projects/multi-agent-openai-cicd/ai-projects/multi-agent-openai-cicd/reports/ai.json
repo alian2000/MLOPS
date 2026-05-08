@@ -1,0 +1,7 @@
+{
+    "decision": "REJECTED",
+    "reasons": [
+        "Maven build failed",
+        "Report missing"
+    ]
+}
