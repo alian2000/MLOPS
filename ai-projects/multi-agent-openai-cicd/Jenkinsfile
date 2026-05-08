@@ -172,6 +172,11 @@ pipeline {
                             error("❌ Build still failing after AI fix")
                         } else {
                             echo "✅ REBUILD SUCCESS AFTER AI FIX"
+			     // 🔥 IMPORTANT FIX
+                              currentBuild.result = 'SUCCESS'
+
+
+
                         }
                     }
                 }
