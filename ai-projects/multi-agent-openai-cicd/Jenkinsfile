@@ -197,9 +197,11 @@ stage('Rebuild After Fix') {
 // 📊 FINAL STATUS HANDLER
 // -------------------------------
 
+
 post {
 
     always {
+
         echo "📌 Final Cleanup & Validation"
 
         script {
@@ -210,28 +212,25 @@ post {
 
                 def log = readFile(logFile)
 
-                if (log.contains("BUILD SUCCESS") || fileExists('ai-projects/multi-agent-openai-cicd/build_success.flag')) {
+                if (log.contains("BUILD SUCCESS") ||
+                    fileExists('ai-projects/multi-agent-openai-cicd/build_success.flag')) {
 
-                    echo "🧠 Forcing FINAL STATUS → SUCCESS"
+                    echo "🧠 FINAL STATUS → SUCCESS"
 
                     currentBuild.result = 'SUCCESS'
+
+                } else {
+
+                    echo "⚠️ FINAL STATUS → UNSTABLE"
+
+                    currentBuild.result = 'UNSTABLE'
                 }
             }
         }
     }
-
-    success {
-        echo "🎉 PIPELINE SUCCESS"
-    }
-
-    unstable {
-        echo "⚠️ PIPELINE UNSTABLE (AI fix applied but issues detected)"
-    }
-
-    failure {
-        echo "❌ PIPELINE FAILED (critical error)"
-    }
 }
+
+
 
 }
 
