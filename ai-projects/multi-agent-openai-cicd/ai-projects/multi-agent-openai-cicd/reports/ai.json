@@ -1,8 +1,8 @@
 {
     "decision": "REJECTED",
     "reasons": [
-        "Java compilation error detected",
-        "Maven build failed",
+        "Maven build failure detected",
+        "Generic build error found in logs",
         "Report missing"
     ]
 }

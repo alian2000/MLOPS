@@ -1,20 +1,8 @@
 {
     "status": "FAILED",
-    "error_type": "MAVEN_BUILD_FAILURE",
     "issues": [
-        "Java compilation error detected",
-        "Maven build failed"
+        "Maven build failure detected",
+        "Generic build error found in logs"
     ],
-    "root_cause": [
-        "Source code has syntax or structural Java errors preventing compilation",
-        "Maven lifecycle failed due to compilation or dependency issues"
-    ],
-    "impact": [
-        "Build failure prevents deployment and stops CI/CD pipeline",
-        "Artifact is not generated, deployment blocked"
-    ],
-    "fix_suggestions": [
-        "Check Java syntax errors, missing imports, or incorrect method signatures",
-        "Run 'mvn clean install -X' for debug logs and fix dependency or compile errors"
-    ]
+    "severity": "HIGH"
 }
