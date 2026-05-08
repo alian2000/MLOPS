@@ -40,30 +40,25 @@ pipeline {
 
 
 
-          stage('Build with Maven') {
-            steps {
-                script {
-                    def status = sh(script: '''
-                        cd ai-projects/multi-agent-openai-cicd
-                        mvn clean install -U > build.log 2>&1
-                    ''', returnStatus: true)
+      
+        stage('Build') {
+    steps {
+        script {
+            dir("ai-projects/multi-agent-openai-cicd") {
 
-                    def log = readFile 'ai-projects/multi-agent-openai-cicd/build.log'
-                    echo "===== BUILD LOG START ====="
-                    echo log
-                    echo "===== BUILD LOG END ====="
+                def status = sh(script: 'mvn clean install -U > build.log 2>&1', returnStatus: true)
 
-                    if (status != 0) {
-                        echo "❌ Build Failed"
-                        writeFile file: 'ai-projects/multi-agent-openai-cicd/build_failed', text: 'failed'
-                    } else {
-                        echo "✅ Build Passed"
-                    }
+                if (status != 0) {
+                    echo "❌ Build Failed"
+                    currentBuild.result = 'FAILURE'
+                } else {
+                    echo "✅ Build Success"
+		     currentBuild.result = 'SUCCESS'
                 }
             }
         }
-
-       
+    }
+} 
 
 
         stage('Project Agent') {
@@ -109,7 +104,7 @@ pipeline {
 
         stage('Decision Agent') {
             steps {
-                sh 'python3 ai-projects/multi-agent-openai-cicd/agents/decision_agent.py'
+                sh 'python3 ai-projects/multi-agent-openai-cicd/agents/decision_agent.py' || true
             }
         }
 
@@ -128,16 +123,17 @@ pipeline {
         // -------------------------------
 // 🤖 AI FIX STAGE
 // -------------------------------
+
+
 stage('AI Fix') {
     when {
         expression {
-            return fileExists('ai-projects/openai_self-healing-agent/build_failed')
+            return currentBuild.result == 'FAILURE'
         }
     }
 
     steps {
         script {
-            echo "🤖 Running AI Fix..."
 
             withCredentials([
                 usernamePassword(
@@ -151,84 +147,98 @@ stage('AI Fix') {
                 )
             ]) {
 
-                sh '''
-                cd ai-projects/openai_self-healing-agent
+                dir("ai-projects/multi-agent-openai-cicd") {
 
-                echo "📂 Current Path:"
-                pwd
+                    sh '''
+                    echo "📂 WORKSPACE:"
+                    pwd
 
-                echo "📦 Installing dependencies..."
-                python3 -m pip install --break-system-packages openai python-dotenv
+                    echo "📦 Running Fix Agent..."
+                    python3 agents/fix_agent.py
 
-                export OPENAI_API_KEY=$OPENAI_API_KEY
+                    echo "📄 Checking files"
+                    cat pom.xml || true
+                    cat src/main/java/WebApp.java || true
 
-                echo "🤖 Running AI Agent..."
-                python3 ai-agent.py
+                    git config user.email "jenkins@ai.com"
+                    git config user.name "Jenkins AI Bot"
 
-                echo "📄 Showing Updated Files"
-                cat ai-devops-maven/pom.xml || true
-                cat ai-devops-maven/src/main/java/App.java || true
+                    git add -A
 
-                git config user.email "jenkins@ai.com"
-                git config user.name "Jenkins AI Bot"
+                    if git diff --cached --quiet; then
+                        echo "⚠️ No changes"
+                        exit 0
+                    fi
 
-                git checkout main || git checkout -b main
+                    git commit -m "[AI] auto fix applied"
 
-                git add -A
+                    git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
 
-                if git diff --cached --quiet; then
-                    echo "⚠️ No changes detected"
-                else
-                    echo "📝 Committing AI fixes..."
-
-                    git commit -m "[ai] auto-fix dependency + syntax issue"
-
-                    git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/AI-DevOps.git
-
-                    echo "⬆️ Pushing AI fixes..."
-
-                    git push origin HEAD:main --force
-
-                    echo "✅ GitHub updated"
-                fi
-                '''
+                    git push origin main --force
+                    '''
+                }
             }
         }
     }
 }
 
 
+
+
+
                // -------------------------------
 // 🔁 REBUILD AFTER FIX
 // -------------------------------
+
+
+// -------------------------------
+// 🔁 REBUILD AFTER AI FIX
+// -------------------------------
 stage('Rebuild After Fix') {
+
     when {
         expression {
-            return fileExists('ai-projects/openai_self-healing-agent/build_failed')
+            return currentBuild.result == 'FAILURE'
         }
     }
 
     steps {
         script {
 
-            def status = sh(script: '''
-            cd ai-projects/openai_self-healing-agent/ai-devops-maven
+            echo "🔁 Running Rebuild After AI Fix..."
 
-            echo "🔁 Rebuilding after AI fix..."
+            dir("ai-projects/multi-agent-openai-cicd") {
 
-            mvn clean install -U
-            ''', returnStatus: true)
+                def status = sh(script: '''
+                echo "📂 Working Directory:"
+                pwd
 
-            if (status != 0) {
-                error("❌ Build still failing after AI fix")
-            } else {
-                echo "✅ BUILD FIXED SUCCESSFULLY"
+                echo "🔁 Starting Maven Rebuild..."
+
+                mvn clean install -U > build_after_fix.log 2>&1
+                ''', returnStatus: true)
+
+                if (status != 0) {
+
+                    echo "❌ Rebuild still failing after AI fix"
+                    currentBuild.result = 'FAILURE'
+
+                    error("❌ Pipeline failed after AI fix")
+
+                } else {
+
+                    echo "✅ REBUILD SUCCESSFUL AFTER AI FIX"
+                    currentBuild.result = 'SUCCESS'
+
+                    sh '''
+                    echo "📄 Build Log Preview:"
+                    tail -n 20 build_after_fix.log || true
+                    '''
+                }
             }
         }
     }
 }
-
-
 
 
     }
