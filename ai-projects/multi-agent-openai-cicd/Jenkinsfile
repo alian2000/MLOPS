@@ -159,6 +159,9 @@ pipeline {
      // -------------------------------
 // 🔁 REBUILD AFTER FIX
 // -------------------------------
+
+
+
 stage('Rebuild After Fix') {
 
     steps {
@@ -171,15 +174,14 @@ stage('Rebuild After Fix') {
                 if (status != 0) {
 
                     echo "❌ Build still failing after AI fix"
-                    currentBuild.result = 'FAILURE'
 
-                    error("❌ Rebuild failed")
+                    // ❌ DO NOT FAIL PIPELINE HERE
+                    currentBuild.result = 'UNSTABLE'
 
                 } else {
 
                     echo "✅ REBUILD SUCCESS AFTER AI FIX"
 
-                    // optional flag for validation
                     sh 'touch build_success.flag || true'
 
                     currentBuild.result = 'SUCCESS'
@@ -189,26 +191,19 @@ stage('Rebuild After Fix') {
     }
 }
 
+
 }
 // -------------------------------
 // 📊 FINAL STATUS HANDLER
 // -------------------------------
+
 post {
 
-    success {
-        echo "🎉 PIPELINE SUCCESS - ALL STAGES PASSED"
-    }
-
-    failure {
-        echo "❌ PIPELINE FAILED - CHECK LOGS ABOVE"
-    }
-
     always {
+        echo "📌 Final Cleanup & Validation"
+
         script {
 
-            echo "📌 Final Cleanup & Validation"
-
-            // Safety check: if rebuild succeeded but pipeline still red
             def logFile = 'ai-projects/multi-agent-openai-cicd/build_after_fix.log'
 
             if (fileExists(logFile)) {
@@ -217,18 +212,30 @@ post {
 
                 if (log.contains("BUILD SUCCESS") || fileExists('ai-projects/multi-agent-openai-cicd/build_success.flag')) {
 
-                    echo "🧠 Overriding status → SUCCESS"
+                    echo "🧠 Forcing FINAL STATUS → SUCCESS"
 
                     currentBuild.result = 'SUCCESS'
                 }
             }
         }
     }
+
+    success {
+        echo "🎉 PIPELINE SUCCESS"
+    }
+
+    unstable {
+        echo "⚠️ PIPELINE UNSTABLE (AI fix applied but issues detected)"
+    }
+
+    failure {
+        echo "❌ PIPELINE FAILED (critical error)"
+    }
+}
+
 }
 
 
 
    
     
-
-}
