@@ -154,34 +154,41 @@ pipeline {
         // -------------------------------
         // 🔁 REBUILD AFTER FIX
         // -------------------------------
-        stage('Rebuild After Fix') {
-            when {
-                expression {
-                    return currentBuild.result == 'FAILURE'
-                }
-            }
+    
+         stage('Rebuild After Fix') {
 
-            steps {
-                script {
+    steps {
+        script {
 
-                    dir("ai-projects/multi-agent-openai-cicd") {
+            // run only if build_failed exists OR previous stage failed
+            if (fileExists('ai-projects/multi-agent-openai-cicd/build_failed')) {
 
-                        def status = sh(script: 'mvn clean install -U > build_after_fix.log 2>&1', returnStatus: true)
+                dir("ai-projects/multi-agent-openai-cicd") {
 
-                        if (status != 0) {
-                            error("❌ Build still failing after AI fix")
-                        } else {
-                            echo "✅ REBUILD SUCCESS AFTER AI FIX"
-			     // 🔥 IMPORTANT FIX
-                              currentBuild.result = 'SUCCESS'
+                    def status = sh(script: 'mvn clean install -U > build_after_fix.log 2>&1', returnStatus: true)
 
+                    if (status != 0) {
 
+                        error("❌ Build still failing after AI fix")
 
-                        }
+                    } else {
+
+                        echo "✅ REBUILD SUCCESS AFTER AI FIX"
+
+                        // FIX FILE CLEANUP
+                        sh 'rm -f build_failed || true'
                     }
                 }
+
+            } else {
+                echo "⚠️ No rebuild needed"
             }
         }
+    }
+}
+
+
+
     }
 
 }
