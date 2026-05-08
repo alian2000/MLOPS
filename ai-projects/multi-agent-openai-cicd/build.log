@@ -10,8 +10,8 @@ Downloading from central: https://repo.maven.apache.org/maven2/org/apache/loggin
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  0.791 s
-[INFO] Finished at: 2026-05-08T05:35:27Z
+[INFO] Total time:  0.885 s
+[INFO] Finished at: 2026-05-08T05:42:11Z
 [INFO] ------------------------------------------------------------------------
 [ERROR] Failed to execute goal on project ai-cicd: Could not resolve dependencies for project com.demo:ai-cicd:jar:1.0
 [ERROR] dependency: org.apache.logging.log4j:log4j-core:jar:1.1.1 (compile)

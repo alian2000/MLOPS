@@ -1,0 +1,60 @@
++ echo 🤖 Running AI Fix Agent...
+🤖 Running AI Fix Agent...
++ pwd
+/var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd
++ ls -l agents/
+total 36
+-rw-r--r-- 1 jenkins jenkins  889 May  8 04:43 decision_agent.py
+-rw-r--r-- 1 jenkins jenkins  669 May  8 04:43 decision_agent.pybak
+-rw-r--r-- 1 jenkins jenkins 4374 May  8 05:42 fix_agent.py
+-rw-r--r-- 1 jenkins jenkins 3678 May  7 22:41 fix_agent.py_bk
+-rw-r--r-- 1 jenkins jenkins 1785 May  8 05:35 project_agent.py
+-rw-r--r-- 1 jenkins jenkins 2991 May  8 04:26 security_agent.py
+-rw-r--r-- 1 jenkins jenkins  566 May  8 04:26 security_agent.py_bak
+-rw-r--r-- 1 jenkins jenkins 1394 May  8 04:26 security_agent.py_bak1
++ python3 agents/fix_agent.py
+🤖 Fix Agent Started...
+🧠 Asking OpenAI for fixes...
+
+🤖 AI RESPONSE:
+
+---JAVA---
+(No Java file provided; no changes needed.)
+
+---POM---
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.demo</groupId>
+    <artifactId>ai-cicd</artifactId>
+    <version>1.0</version>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+
+        <!-- Fixed: Updated log4j-core to a valid recent version -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.20.0</version>
+        </dependency>
+
+    </dependencies>
+
+</project>
+📄 Updating WebApp.java
+📄 Updating pom.xml
+✅ AI Fix Applied
+✅ fix_report.json generated
+🎉 Self-Healing Completed
++ git config user.email jenkins@ai.com
++ git config user.name AI Bot
++ git add -A

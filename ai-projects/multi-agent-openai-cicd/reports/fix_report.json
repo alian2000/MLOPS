@@ -1,7 +1,7 @@
 {
     "status": "fixed",
     "updated_files": [
-        "/var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd/src/main/java/App.java",
+        "/var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd/src/main/java/WebApp.java",
         "/var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd/pom.xml"
     ]
 }
