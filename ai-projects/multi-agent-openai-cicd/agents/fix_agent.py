@@ -120,7 +120,7 @@ def apply_fix(ai_output):
             "---POM---"
         )[1]
 
-        print("📄 Updating App.java")
+        print("📄 Updating WebApp.java")
 
         write_file(JAVA_FILE, java_code.strip())
 
