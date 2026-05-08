@@ -182,9 +182,9 @@ stage('Rebuild After Fix') {
 
                     echo "✅ REBUILD SUCCESS AFTER AI FIX"
 
-                    sh 'touch build_success.flag || true'
+                  //  sh 'touch build_success.flag || true'
 
-                    currentBuild.result = 'SUCCESS'
+                    // currentBuild.result = 'SUCCESS'
                 }
             }
         }
