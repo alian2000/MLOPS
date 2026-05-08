@@ -124,7 +124,7 @@ pipeline {
                         )
                     ]) {
 
-                        dir("ai-projects/openai_self-healing-agent") {
+                        dir("ai-projects/multi-agent-openai-cicd") {
 
                             sh '''
                             echo "🤖 Running AI Fix Agent..."
