@@ -1,6 +1,8 @@
 {
     "decision": "REJECTED",
     "reasons": [
+        "Java compilation error detected",
+        "Missing semicolon in Java code",
         "Maven build failed",
         "Report missing"
     ]
