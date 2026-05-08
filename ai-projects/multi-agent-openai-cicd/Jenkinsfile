@@ -193,42 +193,6 @@ stage('Rebuild After Fix') {
 
 
 }
-// -------------------------------
-// 📊 FINAL STATUS HANDLER
-// -------------------------------
-
-
-post {
-
-    always {
-
-        echo "📌 Final Cleanup & Validation"
-
-        script {
-
-            def logFile = 'ai-projects/multi-agent-openai-cicd/build_after_fix.log'
-
-            if (fileExists(logFile)) {
-
-                def log = readFile(logFile)
-
-                if (log.contains("BUILD SUCCESS") ||
-                    fileExists('ai-projects/multi-agent-openai-cicd/build_success.flag')) {
-
-                    echo "🧠 FINAL STATUS → SUCCESS"
-
-                    currentBuild.result = 'SUCCESS'
-
-                } else {
-
-                    echo "⚠️ FINAL STATUS → UNSTABLE"
-
-                    currentBuild.result = 'UNSTABLE'
-                }
-            }
-        }
-    }
-}
 
 
 
