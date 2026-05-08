@@ -2,8 +2,12 @@
     "status": "SUCCESS",
     "errors": []
 }{
-    "status": "SUCCESS",
-    "issues": [],
-    "severity": "LOW",
-    "cve_risk": []
+    "status": "FAILED",
+    "issues": [
+        "Invalid Log4j version detected (1.1.1)"
+    ],
+    "severity": "HIGH",
+    "cve_risk": [
+        "Potential CVE risk: Log4j vulnerable version pattern detected"
+    ]
 }

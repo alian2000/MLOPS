@@ -1,9 +1,8 @@
 {
     "status": "FAILED",
     "issues": [
-        "Java compilation error detected in Maven build",
-        "Syntax error: missing semicolon in Java code",
-        "Maven build failure detected"
+        "Maven build failure detected",
+        "Generic build error found in logs"
     ],
     "severity": "HIGH"
 }

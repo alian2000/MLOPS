@@ -1,4 +1,6 @@
 {
-    "decision": "APPROVED",
-    "reasons": []
+    "decision": "REJECTED",
+    "reasons": [
+        "Invalid Log4j version detected (1.1.1)"
+    ]
 }
