@@ -129,7 +129,10 @@ pipeline {
                             sh '''
                             echo "🤖 Running AI Fix Agent..."
 
-                            python3 fix_agent.py
+			    pwd
+			    ls -l agents/
+
+                            python3 agents/fix_agent.py
 
                             git config user.email "jenkins@ai.com"
                             git config user.name "AI Bot"
