@@ -30,19 +30,18 @@
 [INFO] -------------------------------------------------------------
 [ERROR] COMPILATION ERROR : 
 [INFO] -------------------------------------------------------------
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd/src/main/java/WebApp.java:[5,46] ';' expected
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd/src/main/java/WebApp.java:[6,6] reached end of file while parsing
-[INFO] 2 errors 
+[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd/src/main/java/WebApp.java:[3,8] class App is public, should be declared in a file named App.java
+[INFO] 1 error
 [INFO] -------------------------------------------------------------
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  0.964 s
-[INFO] Finished at: 2026-05-08T05:59:24Z
+[INFO] Total time:  1.248 s
+[INFO] Finished at: 2026-05-08T06:09:28Z
 [INFO] ------------------------------------------------------------------------
-[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:compile (default-compile) on project ai-cicd: Compilation failure: Compilation failure: 
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd/src/main/java/WebApp.java:[5,46] ';' expected
-[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd/src/main/java/WebApp.java:[6,6] reached end of file while parsing
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:compile (default-compile) on project ai-cicd: Compilation failure
+[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd/src/main/java/WebApp.java:[3,8] class App is public, should be declared in a file named App.java
+[ERROR] 
 [ERROR] -> [Help 1]
 [ERROR] 
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
