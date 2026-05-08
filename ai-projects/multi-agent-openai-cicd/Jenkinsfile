@@ -155,59 +155,71 @@ pipeline {
         // 🔁 REBUILD AFTER FIX
         // -------------------------------
     
-         stage('Rebuild After Fix') {
+
+     // -------------------------------
+// 🔁 REBUILD AFTER FIX
+// -------------------------------
+stage('Rebuild After Fix') {
 
     steps {
         script {
 
-            // run only if build_failed exists OR previous stage failed
-            if (fileExists('ai-projects/multi-agent-openai-cicd/build_failed')) {
+            dir("ai-projects/multi-agent-openai-cicd") {
 
-                dir("ai-projects/multi-agent-openai-cicd") {
+                def status = sh(script: 'mvn clean install -U > build_after_fix.log 2>&1', returnStatus: true)
 
-                    def status = sh(script: 'mvn clean install -U > build_after_fix.log 2>&1', returnStatus: true)
+                if (status != 0) {
 
-                    if (status != 0) {
+                    echo "❌ Build still failing after AI fix"
+                    currentBuild.result = 'FAILURE'
 
-                        error("❌ Build still failing after AI fix")
+                    error("❌ Rebuild failed")
 
-                    } else {
+                } else {
 
-                        echo "✅ REBUILD SUCCESS AFTER AI FIX"
+                    echo "✅ REBUILD SUCCESS AFTER AI FIX"
 
-                        // FIX FILE CLEANUP
-                        sh 'rm -f build_failed || true'
-                    }
+                    // optional flag for validation
+                    sh 'touch build_success.flag || true'
+
+                    currentBuild.result = 'SUCCESS'
                 }
-
-            } else {
-                echo "⚠️ No rebuild needed"
             }
         }
     }
 }
 
-   
-  post {
+
+// -------------------------------
+// 📊 FINAL STATUS HANDLER
+// -------------------------------
+post {
+
     success {
-        echo "🎉 PIPELINE SUCCESS"
+        echo "🎉 PIPELINE SUCCESS - ALL STAGES PASSED"
     }
 
     failure {
-        echo "❌ PIPELINE FAILED (check earlier logs)"
+        echo "❌ PIPELINE FAILED - CHECK LOGS ABOVE"
     }
 
     always {
         script {
-            // FORCE CLEAN FINAL STATUS IF REBUILD SUCCEEDED
-            if (fileExists('ai-projects/multi-agent-openai-cicd/build_after_fix.log')) {
-                echo "🧠 Final validation from rebuild log"
 
-                def log = readFile('ai-projects/multi-agent-openai-cicd/build_after_fix.log')
+            echo "📌 Final Cleanup & Validation"
 
-                if (log.contains("BUILD SUCCESS")) {
+            // Safety check: if rebuild succeeded but pipeline still red
+            def logFile = 'ai-projects/multi-agent-openai-cicd/build_after_fix.log'
+
+            if (fileExists(logFile)) {
+
+                def log = readFile(logFile)
+
+                if (log.contains("BUILD SUCCESS") || fileExists('ai-projects/multi-agent-openai-cicd/build_success.flag')) {
+
+                    echo "🧠 Overriding status → SUCCESS"
+
                     currentBuild.result = 'SUCCESS'
-                    echo "✅ FORCE OVERRIDE: marking pipeline SUCCESS"
                 }
             }
         }
@@ -216,6 +228,7 @@ pipeline {
 
 
 
+   
     }
 
 }
