@@ -6,17 +6,40 @@ from openai import OpenAI
 # CONFIG
 # ------------------------------------------------
 
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
-)
 
-BASE_PATH = os.getcwd()
+#-------------------
+#client = OpenAI(
+#    api_key=os.getenv("OPENAI_API_KEY")
+#)
+
+#BASE_PATH = os.getcwd()
 
 
-JAVA_FILE = os.path.join(BASE_PATH, "ai-projects/multi-agent-openai-cicd/src/main/java/App.java")
-POM_FILE = os.path.join(BASE_PATH, "ai-projects/multi-agent-openai-cicd/pom.xml")
-LOG_FILE = os.path.join(BASE_PATH, "ai-projects/multi-agent-openai-cicd/build.log")
-REPORT_DIR = os.path.join(BASE_PATH, "ai-projects/multi-agent-openai-cicd/reports")
+#JAVA_FILE = os.path.join(BASE_PATH, "ai-projects/multi-agent-openai-cicd/src/main/java/App.java")
+#POM_FILE = os.path.join(BASE_PATH, "ai-projects/multi-agent-openai-cicd/pom.xml")
+#LOG_FILE = os.path.join(BASE_PATH, "ai-projects/multi-agent-openai-cicd/build.log")
+#REPORT_DIR = os.path.join(BASE_PATH, "ai-projects/multi-agent-openai-cicd/reports")
+#---------------------
+
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# -------------------------------
+# ALWAYS USE PROJECT ROOT SAFE PATH
+# -------------------------------
+PROJECT_ROOT = os.path.abspath(os.path.join(os.getcwd(), "."))
+
+LOG_FILE = os.path.join(PROJECT_ROOT, "build.log")
+
+JAVA_FILE = os.path.join(PROJECT_ROOT, "src/main/java/WebApp.java")
+
+POM_FILE = os.path.join(PROJECT_ROOT, "pom.xml")
+
+REPORT_DIR = os.path.join(PROJECT_ROOT, "reports")
+
+
+
+
 
 # ------------------------------------------------
 # READ FILE
