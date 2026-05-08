@@ -3,22 +3,18 @@
     "error_type": "MAVEN_BUILD_FAILURE",
     "issues": [
         "Java compilation error detected",
-        "Missing semicolon in Java code",
         "Maven build failed"
     ],
     "root_cause": [
         "Source code has syntax or structural Java errors preventing compilation",
-        "Java compiler expects ';' at end of statement but found missing token",
         "Maven lifecycle failed due to compilation or dependency issues"
     ],
     "impact": [
         "Build failure prevents deployment and stops CI/CD pipeline",
-        "Compilation stops at syntax parsing stage",
         "Artifact is not generated, deployment blocked"
     ],
     "fix_suggestions": [
         "Check Java syntax errors, missing imports, or incorrect method signatures",
-        "Check line number mentioned in log and add missing semicolon ';'",
         "Run 'mvn clean install -X' for debug logs and fix dependency or compile errors"
     ]
 }
