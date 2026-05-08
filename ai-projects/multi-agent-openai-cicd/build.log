@@ -4,18 +4,48 @@
 [INFO] Building ai-cicd 1.0
 [INFO]   from pom.xml
 [INFO] --------------------------------[ jar ]---------------------------------
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/logging/log4j/log4j-core/1.1.1/log4j-core-1.1.1.pom
-[WARNING] The POM for org.apache.logging.log4j:log4j-core:jar:1.1.1 is missing, no dependency information available
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/logging/log4j/log4j-core/1.1.1/log4j-core-1.1.1.jar
+[INFO] 
+[INFO] --- clean:3.2.0:clean (default-clean) @ ai-cicd ---
+[INFO] Deleting /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd/target
+[INFO] 
+[INFO] --- resources:3.4.0:resources (default-resources) @ ai-cicd ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] skip non existing resourceDirectory /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd/src/main/resources
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ ai-cicd ---
+[INFO] Recompiling the module because of changed source code.
+[WARNING] File encoding has not been set, using platform encoding UTF-8, i.e. build is platform dependent!
+[INFO] Compiling 1 source file with javac [debug target 1.8] to target/classes
+[INFO] Annotation processing is enabled because one or more processors were found
+  on the class path. A future release of javac may disable annotation processing
+  unless at least one processor is specified by name (-processor), or a search
+  path is specified (--processor-path, --processor-module-path), or annotation
+  processing is enabled explicitly (-proc:only, -proc:full).
+  Use -Xlint:-options to suppress this message.
+  Use -proc:none to disable annotation processing.
+[INFO] -------------------------------------------------------------
+[WARNING] COMPILATION WARNING : 
+[INFO] -------------------------------------------------------------
+[WARNING] bootstrap class path not set in conjunction with -source 8
+[WARNING] source value 8 is obsolete and will be removed in a future release
+[WARNING] target value 8 is obsolete and will be removed in a future release
+[WARNING] To suppress warnings about obsolete options, use -Xlint:-options.
+[INFO] 4 warnings 
+[INFO] -------------------------------------------------------------
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd/src/main/java/WebApp.java:[5,46] ';' expected
+[INFO] 1 error
+[INFO] -------------------------------------------------------------
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  0.885 s
-[INFO] Finished at: 2026-05-08T05:42:11Z
+[INFO] Total time:  0.990 s
+[INFO] Finished at: 2026-05-08T05:50:36Z
 [INFO] ------------------------------------------------------------------------
-[ERROR] Failed to execute goal on project ai-cicd: Could not resolve dependencies for project com.demo:ai-cicd:jar:1.0
-[ERROR] dependency: org.apache.logging.log4j:log4j-core:jar:1.1.1 (compile)
-[ERROR] 	Could not find artifact org.apache.logging.log4j:log4j-core:jar:1.1.1 in central (https://repo.maven.apache.org/maven2)
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:compile (default-compile) on project ai-cicd: Compilation failure
+[ERROR] /var/jenkins_home/workspace/AI-DevOps-Pipeline/ai-projects/multi-agent-openai-cicd/src/main/java/WebApp.java:[5,46] ';' expected
 [ERROR] 
 [ERROR] -> [Help 1]
 [ERROR] 
@@ -23,4 +53,4 @@ Downloading from central: https://repo.maven.apache.org/maven2/org/apache/loggin
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
 [ERROR] 
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
-[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
