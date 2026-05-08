@@ -25,23 +25,37 @@ pipeline {
         // -------------------------------
         // 🏗 BUILD
         // -------------------------------
-        stage('Build') {
-            steps {
-                script {
-                    dir("ai-projects/multi-agent-openai-cicd") {
 
-                        def status = sh(script: 'mvn clean install -U > build.log 2>&1', returnStatus: true)
+         stage('Build') {
 
-                        if (status != 0) {
-                            echo "❌ BUILD FAILED"
-                           currentBuild.result = 'FAILURE'
-                        } else {
-                            echo "✅ BUILD SUCCESS"
-                        }
-                    }
+    steps {
+
+        script {
+
+            dir("ai-projects/multi-agent-openai-cicd") {
+
+                def status = sh(
+                    script: 'mvn clean install -U > build.log 2>&1',
+                    returnStatus: true
+                )
+
+                if (status != 0) {
+
+                    echo "❌ BUILD FAILED"
+
+                    sh 'touch build_failed'
+
+                } else {
+
+                    echo "✅ BUILD SUCCESS"
+
+                    sh 'rm -f build_failed || true'
                 }
             }
         }
+    }
+}
+
 
         // -------------------------------
         // 🤖 PROJECT AGENT
@@ -105,7 +119,7 @@ pipeline {
         stage('AI Fix') {
             when {
                 expression {
-                    return currentBuild.result == 'FAILURE'
+                    return fileExists('ai-projects/multi-agent-openai-cicd/build_failed')
                 }
             }
 
