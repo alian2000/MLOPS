@@ -179,10 +179,4 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            echo "📦 Archiving reports..."
-            archiveArtifacts artifacts: 'ai-projects/multi-agent-openai-cicd/reports/*', fingerprint: true
-        }
-    }
 }
