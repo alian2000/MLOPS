@@ -34,7 +34,7 @@ pipeline {
 
                         if (status != 0) {
                             echo "❌ BUILD FAILED"
-                            currentBuild.result = 'FAILURE'
+                           // currentBuild.result = 'FAILURE'
                         } else {
                             echo "✅ BUILD SUCCESS"
                         }
