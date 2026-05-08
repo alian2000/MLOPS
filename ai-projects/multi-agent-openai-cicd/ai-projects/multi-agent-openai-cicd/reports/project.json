@@ -1,0 +1,16 @@
+{
+    "status": "FAILED",
+    "error_type": "MAVEN_BUILD_FAILURE",
+    "issues": [
+        "Maven build failed"
+    ],
+    "root_cause": [
+        "Maven lifecycle failed due to compilation or dependency issues"
+    ],
+    "impact": [
+        "Artifact is not generated, deployment blocked"
+    ],
+    "fix_suggestions": [
+        "Run 'mvn clean install -X' for debug logs and fix dependency or compile errors"
+    ]
+}
