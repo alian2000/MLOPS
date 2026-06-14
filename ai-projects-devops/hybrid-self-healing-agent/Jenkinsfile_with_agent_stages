@@ -6,17 +6,16 @@ pipeline {
     }
 
     stages {
-
         stage('Clone Code') {
             steps {
+                // 1. Updated to use your 'github-ssh-key' and SSH URL style
                 git branch: 'main',
-                    credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
-                    url: 'https://github.com/Rohitcs09/MLOPS.git'
+                    credentialsId: 'github-ssh-key',
+                    url: 'git@github.com:Rohitcs09/MLOPS.git'
             }
         }
 
-
-stage('Skip AI Loop') {
+        stage('Skip AI Loop') {
             steps {
                 script {
                     def msg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
@@ -64,19 +63,10 @@ stage('Skip AI Loop') {
                 script {
                     echo "🤖 Running Hybrid AI Fix..."
 
-                    withCredentials([usernamePassword(
-                        credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
-                        usernameVariable: 'GIT_USER',
-                        passwordVariable: 'GIT_PASS'
-                    )]) {
-
+                    // 2. Swapped usernamePassword for sshUserPrivateKey wrapper
+                    sshagent(credentials: ['github-ssh-key']) {
                         sh '''
                         cd ai-projects-devops/hybrid-self-healing-agent
-
-                        echo "📂 Current Path:"
-                        pwd
-                        echo "📂 Project Structure:"
-                        ls -R
 
                         if command -v python3 &> /dev/null
                         then
@@ -94,7 +84,9 @@ stage('Skip AI Loop') {
                           echo "No changes"
                         else
                           git commit -m "[ai] auto-fix code + dependency issue"
-                          git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
+                          
+                          # 3. Use SSH endpoint URL for the push operation instead of HTTPS
+                          git remote set-url origin git@github.com:Rohitcs09/MLOPS.git
                           git push origin main
                         fi
                         '''
@@ -126,5 +118,3 @@ stage('Skip AI Loop') {
         }
     }
 }
-
-
