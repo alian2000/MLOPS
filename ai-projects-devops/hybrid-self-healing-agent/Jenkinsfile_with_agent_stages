@@ -11,7 +11,7 @@ pipeline {
                 // 1. Updated to use your 'github-ssh-key' and SSH URL style
                 git branch: 'main',
                     credentialsId: 'github-ssh-key',
-                    url: 'git@github.com:Rohitcs09/MLOPS.git'
+                    url: 'git@github.com:alian2000/MLOPS.git'
             }
         }
 
@@ -86,7 +86,7 @@ pipeline {
                           git commit -m "[ai] auto-fix code + dependency issue"
                           
                           # 3. Use SSH endpoint URL for the push operation instead of HTTPS
-                          git remote set-url origin git@github.com:Rohitcs09/MLOPS.git
+                          git remote set-url origin git@github.com:alian2000/MLOPS.git
                           git push origin main
                         fi
                         '''
