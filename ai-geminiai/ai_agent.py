@@ -14,9 +14,10 @@ if not GEMINI_KEY:
 # Initialize the official Google GenAI Client
 client = genai.Client(api_key=GEMINI_KEY)
 
-LOG_FILE = "ai-devops-maven/build.log"
-JAVA_FILE = "ai-devops-maven/src/main/java/App.java"
-POM_FILE = "ai-devops-maven/pom.xml"
+# ✅ NEW CORRECT PATHS
+LOG_FILE = "build.log"
+JAVA_FILE = "src/main/java/App.java"
+POM_FILE = "pom.xml"
 
 
 def read_file(path):
