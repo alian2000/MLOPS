@@ -1,0 +1,110 @@
+pipeline {
+    // Keeps startup unconstrained so individual stages can control their own pods
+    agent none 
+
+    options {
+        // Keeps background tracking processes from initializing duplicate SSH channels
+        skipDefaultCheckout() 
+    }
+
+    stages {
+        // --- STAGE 1: THE REPO CHECKOUT & MAVEN BUILD ---
+        stage('Build & Compile Application') {
+            agent {
+                node {
+                    label 'helm'
+                }
+            }
+            steps {
+                script {
+                    git branch: 'main',
+                        url: 'https://github.com/alian2000/MLOPS.git'
+
+                    def status = sh(script: '''
+                        cd ai-projects-devops/hybrid-self-healing-agent
+                        echo "🚀 Running Maven Build on helm agent pod..."
+                        mvn clean install -U > build.log 2>&1
+                    ''', returnStatus: true)
+
+                    def log = readFile 'ai-projects-devops/hybrid-self-healing-agent/build.log'
+                    echo "===== BUILD LOG START ====="
+                    echo log
+                    echo "===== BUILD LOG END ====="
+
+                    if (status != 0) {
+                        echo "❌ Maven Build Failed"
+                        writeFile file: 'ai-projects-devops/hybrid-self-healing-agent/build_failed', text: 'failed'
+                        
+                        // ✅ FIX: Native Linux tarball compresses EVERYTHING (including hidden .git tracking folders)
+                        sh 'tar -czf workspace-state.tar.gz .git ai-projects-devops/'
+                        
+                        stash name: 'linux-archive-stash', includes: 'workspace-state.tar.gz'
+                    }
+                }
+            }
+        }
+
+        // --- STAGE 2: THE SELF-HEALING FIX ---
+        stage('AI Self-Healing Fix') {
+            agent {
+                node {
+                    label 'helm'
+                }
+            }
+            steps {
+                script {
+                    // 1. Extract the compressed workspace state archive
+                    try {
+                        unstash 'linux-archive-stash'
+                        sh 'tar -xzf workspace-state.tar.gz && rm workspace-state.tar.gz'
+                    } catch (Exception e) {
+                        echo "No build failure archive found. Skipping AI fix safely."
+                        return
+                    }
+
+                    // 2. Evaluate the marker condition now that the file system is populated
+                    if (!fileExists('ai-projects-devops/hybrid-self-healing-agent/build_failed')) {
+                        echo "build_failed flag not present. Skipping AI engine execution."
+                        return
+                    }
+
+                    echo "🤖 Running Hybrid AI Fix on helm agent pod..."
+                    
+                    sshagent(credentials: ['github-ssh-key']) {
+                        sh '''
+                        cd ai-projects-devops/hybrid-self-healing-agent
+                        
+                        if command -v python3 &> /dev/null
+                        then
+                            python3 ai_agent.py
+                        else
+                            python ai_agent.py
+                        fi
+                        
+                        git config user.email "jenkins-helm@ai.com"
+                        git config user.name "Helm AI Agent Bot"
+                        
+                        # Dynamically trusts github.com during the push command
+                        export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
+                        
+                        git add .
+                        
+                        if git diff --cached --quiet; then
+                          echo "No changes needed."
+                        else
+                          git commit -m "[ai] auto-fix code via helm worker node"
+                          
+                          # Swaps origin to SSH format for write permissions
+                          git remote set-url origin git@github.com:alian2000/MLOPS.git
+                          
+                          # Pushes the fix to your test sandbox branch
+                          git push origin :ai-test-fixes || true
+                          git push origin main:ai-test-fixes
+                        fi
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}

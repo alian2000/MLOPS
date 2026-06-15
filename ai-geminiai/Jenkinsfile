@@ -1,0 +1,95 @@
+pipeline {
+    // 1. Assign your 'helm1' worker node/template for this job
+    agent {
+        node {
+            label 'helm'
+        }
+    }
+
+    tools {
+        maven 'Maven3'
+    }
+
+    stages {
+        stage('Clone Code') {
+            steps {
+                // Uses public HTTPS to clone cleanly without SSH host-key verification crashes
+                git branch: 'main',
+                    url: 'https://github.com/alian2000/MLOPS.git'
+            }
+        }
+
+        stage('Build with Maven') {
+            steps {
+                script {
+                    def status = sh(script: '''
+                        cd ai-projects-devops/hybrid-self-healing-agent
+                        echo "🚀 Running Maven Build on helm1 node..."
+                        mvn clean install -U > build.log 2>&1
+                    ''', returnStatus: true)
+
+                    def log = readFile 'ai-projects-devops/hybrid-self-healing-agent/build.log'
+                    echo "===== BUILD LOG START ====="
+                    echo log
+                    echo "===== BUILD LOG END ====="
+
+                    if (status != 0) {
+                        echo "❌ Build Failed"
+                        writeFile file: 'ai-projects-devops/hybrid-self-healing-agent/build_failed', text: 'failed'
+                    } else {
+                        echo "✅ Build Passed"
+                    }
+                }
+            }
+        }
+
+        stage('AI Fix') {
+            when {
+                expression {
+                    return fileExists('ai-projects-devops/hybrid-self-healing-agent/build_failed')
+                }
+            }
+            steps {
+                script {
+                    echo "🤖 Running Hybrid AI Fix on helm1 worker node..."
+
+                    // Uses your saved 'github-ssh-key' credentials to grant push permissions
+                    sshagent(credentials: ['github-ssh-key']) {
+                        sh '''
+                        cd ai-projects-devops/hybrid-self-healing-agent
+
+                        if command -v python3 &> /dev/null
+                        then
+                            python3 ai_agent.py
+                        else
+                            python ai_agent.py
+                        fi
+
+                        git config user.email "jenkins-helm@ai.com"
+                        git config user.name "Helm1 AI Agent Bot"
+                        
+                        # Instructs the Git SSH process to trust github.com dynamically inside the container
+                        export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
+
+                        git add .
+
+                        if git diff --cached --quiet; then
+                          echo "No changes needed."
+                        else
+                          git commit -m "[ai] auto-fix code via helm1 worker node"
+                          
+                          # Swaps the tracking origin to SSH for authorized push permission
+                          git remote set-url origin git@github.com:alian2000/MLOPS.git
+                          
+                          # SIMULATION LOGIC: Deletes the remote tracking test branch if it exists, 
+                          # then pushes local changes to 'ai-test-fixes' instead of breaking main.
+                          git push origin :ai-test-fixes || true
+                          git push origin main:ai-test-fixes
+                        fi
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}
