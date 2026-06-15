@@ -1,8 +1,9 @@
 pipeline {
+    // Keeps startup unconstrained so individual stages can control their own pods
     agent none 
 
     options {
-        // 🔥 FIX: Tells Jenkins NOT to run the hidden background checkout stepppppppppp
+        // Keeps background tracking processes from initializing duplicate SSH channels
         skipDefaultCheckout() 
     }
 
@@ -16,7 +17,6 @@ pipeline {
             }
             steps {
                 script {
-                    // This explicit HTTPS checkout will now run cleanly on its own!
                     git branch: 'main',
                         url: 'https://github.com/alian2000/MLOPS.git'
 
@@ -34,6 +34,10 @@ pipeline {
                     if (status != 0) {
                         echo "❌ Maven Build Failed"
                         writeFile file: 'ai-projects-devops/hybrid-self-healing-agent/build_failed', text: 'failed'
+                        
+                        // Bundle the failure artifacts so the next container can access them
+                        stash name: 'build-failure-artifacts', 
+                              includes: 'ai-projects-devops/hybrid-self-healing-agent/build_failed,ai-projects-devops/hybrid-self-healing-agent/build.log,ai-projects-devops/hybrid-self-healing-agent/pom.xml,ai-projects-devops/hybrid-self-healing-agent/ai_agent.py'
                     }
                 }
             }
@@ -41,11 +45,6 @@ pipeline {
 
         // --- STAGE 2: THE SELF-HEALING FIX ---
         stage('AI Self-Healing Fix') {
-            when {
-                expression {
-                    return fileExists('ai-projects-devops/hybrid-self-healing-agent/build_failed')
-                }
-            }
             agent {
                 node {
                     label 'helm'
@@ -53,6 +52,20 @@ pipeline {
             }
             steps {
                 script {
+                    // 1. Pull down the artifacts first so the workspace isn't empty anymore
+                    try {
+                        unstash 'build-failure-artifacts'
+                    } catch (Exception e) {
+                        echo "No build failure stashes found. The previous build must have passed! Skipping AI fix safely."
+                        return
+                    }
+
+                    // 2. Evaluate the marker condition now that the file system is populated
+                    if (!fileExists('ai-projects-devops/hybrid-self-healing-agent/build_failed')) {
+                        echo "build_failed flag not present. Skipping AI engine execution."
+                        return
+                    }
+
                     echo "🤖 Running Hybrid AI Fix on helm agent pod..."
                     
                     sshagent(credentials: ['github-ssh-key']) {
@@ -69,6 +82,7 @@ pipeline {
                         git config user.email "jenkins-helm@ai.com"
                         git config user.name "Helm AI Agent Bot"
                         
+                        # Dynamically trusts github.com during the push command
                         export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
                         
                         git add .
@@ -78,8 +92,10 @@ pipeline {
                         else
                           git commit -m "[ai] auto-fix code via helm worker node"
                           
+                          # Swaps origin to SSH format for write permissions
                           git remote set-url origin git@github.com:alian2000/MLOPS.git
                           
+                          # Pushes the fix to your test sandbox branch
                           git push origin :ai-test-fixes || true
                           git push origin main:ai-test-fixes
                         fi
