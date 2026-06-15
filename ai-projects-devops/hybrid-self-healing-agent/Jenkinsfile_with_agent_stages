@@ -1,43 +1,28 @@
 pipeline {
-    agent {
-        node {
-            label 'helm'
-        }
-    }
+    agent none 
 
-    tools {
-        maven 'Maven3'
+    options {
+        // 🔥 FIX: Tells Jenkins NOT to run the hidden background checkout stepppppppppp
+        skipDefaultCheckout() 
     }
 
     stages {
-        stage('Clone Code') {
-            steps {
-                git branch: 'main',
-                    credentialsId: 'github-ssh-key',
-                    url: 'git@github.com:alian2000/MLOPS.git'
-            }
-        }
-
-        stage('Skip AI Loop') {
-            steps {
-                script {
-                    def msg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
-                    echo "Last commit message: ${msg}"
-
-                    if (msg.contains("[ai]")) {
-                        echo "AI commit detected → stopping loop"
-                        currentBuild.result = 'SUCCESS'
-                        return
-                    }
+        // --- STAGE 1: THE REPO CHECKOUT & MAVEN BUILD ---
+        stage('Build & Compile Application') {
+            agent {
+                node {
+                    label 'helm'
                 }
             }
-        }
-
-        stage('Build with Maven') {
             steps {
                 script {
+                    // This explicit HTTPS checkout will now run cleanly on its own!
+                    git branch: 'main',
+                        url: 'https://github.com/alian2000/MLOPS.git'
+
                     def status = sh(script: '''
                         cd ai-projects-devops/hybrid-self-healing-agent
+                        echo "🚀 Running Maven Build on helm agent pod..."
                         mvn clean install -U > build.log 2>&1
                     ''', returnStatus: true)
 
@@ -47,71 +32,58 @@ pipeline {
                     echo "===== BUILD LOG END ====="
 
                     if (status != 0) {
-                        echo "❌ Build Failed"
+                        echo "❌ Maven Build Failed"
                         writeFile file: 'ai-projects-devops/hybrid-self-healing-agent/build_failed', text: 'failed'
-                    } else {
-                        echo "✅ Build Passed"
                     }
                 }
             }
         }
 
-        stage('AI Fix') {
+        // --- STAGE 2: THE SELF-HEALING FIX ---
+        stage('AI Self-Healing Fix') {
             when {
                 expression {
                     return fileExists('ai-projects-devops/hybrid-self-healing-agent/build_failed')
                 }
             }
+            agent {
+                node {
+                    label 'helm'
+                }
+            }
             steps {
                 script {
-                    echo "🤖 Running Hybrid AI Fix..."
-
+                    echo "🤖 Running Hybrid AI Fix on helm agent pod..."
+                    
                     sshagent(credentials: ['github-ssh-key']) {
                         sh '''
                         cd ai-projects-devops/hybrid-self-healing-agent
-
+                        
                         if command -v python3 &> /dev/null
                         then
                             python3 ai_agent.py
                         else
                             python ai_agent.py
                         fi
-
-                        git config user.email "jenkins@ai.com"
-                        git config user.name "Jenkins AI Bot"
-
+                        
+                        git config user.email "jenkins-helm@ai.com"
+                        git config user.name "Helm AI Agent Bot"
+                        
+                        export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
+                        
                         git add .
-
+                        
                         if git diff --cached --quiet; then
-                          echo "No changes"
+                          echo "No changes needed."
                         else
-                          git commit -m "[ai] auto-fix code + dependency issue"
+                          git commit -m "[ai] auto-fix code via helm worker node"
+                          
                           git remote set-url origin git@github.com:alian2000/MLOPS.git
-                          git push origin main
+                          
+                          git push origin :ai-test-fixes || true
+                          git push origin main:ai-test-fixes
                         fi
                         '''
-                    }
-                }
-            }
-        }
-
-        stage('Rebuild After Fix') {
-            when {
-                expression {
-                    return fileExists('ai-projects-devops/hybrid-self-healing-agent/build_failed')
-                }
-            }
-            steps {
-                script {
-                    def status = sh(script: '''
-                        cd ai-projects-devops/hybrid-self-healing-agent
-                        mvn clean install -U
-                    ''', returnStatus: true)
-
-                    if (status != 0) {
-                        error("❌ Build still failing after AI fix")
-                    } else {
-                        echo "✅ Build Fixed Successfully"
                     }
                 }
             }
