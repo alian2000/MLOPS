@@ -7,7 +7,7 @@ from google.genai import types
 # 🎨 Jenkins ANSI Color Palette Configurations
 class Colors:
     PURPLE    = '\033[1;35m'  # Bold Magenta/Purple for GEMINI branding
-    TEAL      = '\033[1;36m'  # Cyan/Teal for Code output
+    TEAL      = '\033[1;36mm'  # Cyan/Teal for Code output
     GREEN     = '\033[1;32m'  # Success indicator
     RED       = '\033[1;31m'  # Failure/Error indicator
     YELLOW    = '\033[1;33m'  # Warning indicator
@@ -24,7 +24,7 @@ if not GEMINI_KEY:
 # Initialize the official Google GenAI Client
 client = genai.Client(api_key=GEMINI_KEY)
 
-# 📂 Corrected Relative Paths (Rooted directly inside the execution folder)
+# 📂 Corrected Relative Paths
 LOG_FILE = "build.log"
 JAVA_FILE = "src/main/java/App.java"
 POM_FILE = "pom.xml"
@@ -43,7 +43,6 @@ def write_file(path, content):
 
 
 def ask_ai(log, java_code, pom):
-    # Fancy themed banner
     print(f"\n{Colors.PURPLE}╔════════════════════════════════════════════════════════════╗")
     print(f"║ 🤖  Initializing Generative Self-Healing Engine via GEMINI ║")
     print(f"╚════════════════════════════════════════════════════════════╝{Colors.RESET}\n")
@@ -72,7 +71,6 @@ Return ONLY updated Java code and pom.xml in this exact format:
 <fixed pom.xml>
 """
 
-    # Call Gemini 2.5 Flash with a temperature of 0 for strict, deterministic code fixes
     response = client.models.generate_content(
         model='gemini-2.5-flash',
         contents=prompt,
@@ -84,13 +82,32 @@ Return ONLY updated Java code and pom.xml in this exact format:
     return response.text
 
 
+def print_boxed_output(title, text_content):
+    """Wraps text inside a clean, dynamic ASCII border box"""
+    lines = text_content.strip().split('\n')
+    # Determine the width of the box based on the longest line of code (min width of 60)
+    box_width = max(max(len(line) for line in lines), 60)
+    
+    print(f"{Colors.TEAL}╔═ {Colors.PURPLE}{Colors.BOLD}{title}{Colors.TEAL} " + "═" * (box_width - len(title) - 2) + "╗")
+    for line in lines:
+        # Pad each line with spaces to keep the right border aligned perfectly
+        padding = " " * (box_width - len(line))
+        print(f"║ {Colors.RESET}{line}{Colors.TEAL}{padding} ║")
+    print(f"╚" + "═" * (box_width + 2) + f"╝{Colors.RESET}")
+
+
 def apply_fix(ai_output):
     if "---JAVA---" in ai_output and "---POM---" in ai_output:
-        java_part = ai_output.split("---JAVA---")[1].split("---POM---")[0]
-        pom_part = ai_output.split("---POM---")[1]
+        java_part = ai_output.split("---JAVA---")[1].split("---POM---")[0].strip()
+        pom_part = ai_output.split("---POM---")[1].strip()
 
-        write_file(JAVA_FILE, java_part.strip())
-        write_file(POM_FILE, pom_part.strip())
+        write_file(JAVA_FILE, java_part)
+        write_file(POM_FILE, pom_part)
+
+        print(f"\n{Colors.PURPLE}✨ [GEMINI COGNITIVE CORRECTION PATTERNS] ✨{Colors.RESET}\n")
+        print_boxed_output("FIXED JAVA REPOSITORY CODE", java_part)
+        print("\n")
+        print_boxed_output("FIXED MAVEN DEPENDENCY POM", pom_part)
 
         print(f"\n{Colors.GREEN}✅ {Colors.PURPLE}{Colors.BOLD}GEMINI{Colors.GREEN} Code Correction Layer Applied Successfully!{Colors.RESET}")
         return True
@@ -111,13 +128,6 @@ def main():
     pom = read_file(POM_FILE)
 
     ai_output = ask_ai(log, java_code, pom)
-
-    # Wrap the raw model output in distinct Teal blocks so it looks like a clean terminal layout
-    print(f"{Colors.PURPLE}{Colors.BOLD}✨ [GEMINI COGNITIVE OUTPUT STREAM] ✨{Colors.RESET}")
-    print(f"{Colors.TEAL}─────────────────────────────────────────────────────────────")
-    print(ai_output.strip())
-    print(f"─────────────────────────────────────────────────────────────{Colors.RESET}\n")
-
     apply_fix(ai_output)
 
 
