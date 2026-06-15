@@ -1,5 +1,5 @@
 pipeline {
-    // 1. Point the entire pipeline execution to your 'helm1' node
+    // 1. Assign helm1 as the worker node for this job
     agent {
         node {
             label 'helm'
@@ -13,10 +13,9 @@ pipeline {
     stages {
         stage('Clone Code') {
             steps {
-                // 2. Pointing to your credentialsId 'github-ssh-key' and git URL style
+                // Uses HTTPS to clone cleanly without SSH host-key verification crashes
                 git branch: 'main',
-                    credentialsId: 'github-ssh-key',
-                    url: 'git@github.com:alian2000/MLOPS.git'
+                    url: 'https://github.com/alian2000/MLOPS.git'
             }
         }
 
@@ -24,21 +23,62 @@ pipeline {
             steps {
                 script {
                     def status = sh(script: '''
-                        cd ai-projects/hybrid-self-healing-agent
+                        cd ai-projects-devops/hybrid-self-healing-agent
                         echo "🚀 Running Maven Build on helm1 node..."
                         mvn clean install -U > build.log 2>&1
                     ''', returnStatus: true)
 
-                    def log = readFile 'ai-projects/hybrid-self-healing-agent/build.log'
+                    def log = readFile 'ai-projects-devops/hybrid-self-healing-agent/build.log'
                     echo "===== BUILD LOG START ====="
                     echo log
                     echo "===== BUILD LOG END ====="
 
                     if (status != 0) {
                         echo "❌ Build Failed"
-                        writeFile file: 'ai-projects/hybrid-self-healing-agent/build_failed', text: 'failed'
+                        writeFile file: 'ai-projects-devops/hybrid-self-healing-agent/build_failed', text: 'failed'
                     } else {
                         echo "✅ Build Passed"
+                    }
+                }
+            }
+        }
+
+        stage('AI Fix') {
+            when {
+                expression {
+                    return fileExists('ai-projects-devops/hybrid-self-healing-agent/build_failed')
+                }
+            }
+            steps {
+                script {
+                    echo "🤖 Running Hybrid AI Fix on helm1 worker node..."
+
+                    // Uses your saved 'github-ssh-key' credentials to grant push permissions
+                    sshagent(credentials: ['github-ssh-key']) {
+                        sh '''
+                        cd ai-projects-devops/hybrid-self-healing-agent
+
+                        if command -v python3 &> /dev/null
+                        then
+                            python3 ai_agent.py
+                        else
+                            python ai_agent.py
+                        fi
+
+                        git config user.email "jenkins-helm@ai.com"
+                        git config user.name "Helm1 AI Agent Bot"
+                        git add .
+
+                        if git diff --cached --quiet; then
+                          echo "No changes needed."
+                        else
+                          git commit -m "[ai] auto-fix code via helm1 worker node"
+                          
+                          # Seamlessly swaps the origin to SSH for writing permissions
+                          git remote set-url origin git@github.com:alian2000/MLOPS.git
+                          git push origin main
+                        fi
+                        '''
                     }
                 }
             }
