@@ -1,41 +1,28 @@
 pipeline {
-    agent any
+    // Keeps startup unconstrained so individual stages can control their own pods
+    agent none 
 
-    tools {
-        maven 'Maven3'
+    options {
+        // Keeps background tracking processes from initializing duplicate SSH channels
+        skipDefaultCheckout() 
     }
 
     stages {
-
-        stage('Clone Code') {
-            steps {
-                git branch: 'main',
-                    credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
-                    url: 'https://github.com/Rohitcs09/MLOPS.git'
-            }
-        }
-
-
-stage('Skip AI Loop') {
-            steps {
-                script {
-                    def msg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
-                    echo "Last commit message: ${msg}"
-
-                    if (msg.contains("[ai]")) {
-                        echo "AI commit detected → stopping loop"
-                        currentBuild.result = 'SUCCESS'
-                        return
-                    }
+        // --- STAGE 1: THE REPO CHECKOUT & MAVEN BUILD ---
+        stage('Build & Compile Application') {
+            agent {
+                node {
+                    label 'helm'
                 }
             }
-        }
-
-        stage('Build with Maven') {
             steps {
                 script {
+                    git branch: 'main',
+                        url: 'https://github.com/alian2000/MLOPS.git'
+
                     def status = sh(script: '''
                         cd ai-projects-devops/hybrid-self-healing-agent
+                        echo "🚀 Running Maven Build on helm agent pod..."
                         mvn clean install -U > build.log 2>&1
                     ''', returnStatus: true)
 
@@ -45,86 +32,68 @@ stage('Skip AI Loop') {
                     echo "===== BUILD LOG END ====="
 
                     if (status != 0) {
-                        echo "❌ Build Failed"
+                        echo "❌ Maven Build Failed"
                         writeFile file: 'ai-projects-devops/hybrid-self-healing-agent/build_failed', text: 'failed'
-                    } else {
-                        echo "✅ Build Passed"
+                        
+                        # 🔥 PERSISTENCE FIX: Bundle the failure artifacts so the next container can access them
+                        stash name: 'build-failure-artifacts', 
+                              includes: 'ai-projects-devops/hybrid-self-healing-agent/build_failed,ai-projects-devops/hybrid-self-healing-agent/build.log,ai-projects-devops/hybrid-self-healing-agent/pom.xml'
                     }
                 }
             }
         }
 
-        stage('AI Fix') {
-            when {
-                expression {
-                    return fileExists('ai-projects-devops/hybrid-self-healing-agent/build_failed')
+        // --- STAGE 2: THE SELF-HEALING FIX ---
+        stage('AI Self-Healing Fix') {
+            agent {
+                node {
+                    label 'helm'
                 }
             }
             steps {
                 script {
-                    echo "🤖 Running Hybrid AI Fix..."
+                    // 🔥 PERSISTENCE FIX: Safely retrieve the artifacts if they were stashed by Stage 1
+                    try {
+                        unstash 'build-failure-artifacts'
+                    } catch (Exception e) {
+                        echo "No build failure stashes found. Skipping AI fix layer safely."
+                        return
+                    }
 
-                    withCredentials([usernamePassword(
-                        credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
-                        usernameVariable: 'GIT_USER',
-                        passwordVariable: 'GIT_PASS'
-                    )]) {
-
+                    echo "🤖 Running Hybrid AI Fix on helm agent pod..."
+                    
+                    sshagent(credentials: ['github-ssh-key']) {
                         sh '''
                         cd ai-projects-devops/hybrid-self-healing-agent
-
-                        echo "📂 Current Path:"
-                        pwd
-                        echo "📂 Project Structure:"
-                        ls -R
-
+                        
                         if command -v python3 &> /dev/null
                         then
                             python3 ai_agent.py
                         else
                             python ai_agent.py
                         fi
-
-                        git config user.email "jenkins@ai.com"
-                        git config user.name "Jenkins AI Bot"
-
+                        
+                        git config user.email "jenkins-helm@ai.com"
+                        git config user.name "Helm AI Agent Bot"
+                        
+                        export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
+                        
                         git add .
-
+                        
                         if git diff --cached --quiet; then
-                          echo "No changes"
+                          echo "No changes needed."
                         else
-                          git commit -m "[ai] auto-fix code + dependency issue"
-                          git remote set-url origin https://$GIT_USER:$GIT_PASS@github.com/Rohitcs09/MLOPS.git
-                          git push origin main
+                          git commit -m "[ai] auto-fix code via helm worker node"
+                          
+                          git remote set-url origin git@github.com:alian2000/MLOPS.git
+                          
+                          git push origin :ai-test-fixes || true
+                          git push origin main:ai-test-fixes
                         fi
                         '''
                     }
                 }
             }
         }
-
-        stage('Rebuild After Fix') {
-            when {
-                expression {
-                    return fileExists('ai-projects-devops/hybrid-self-healing-agent/build_failed')
-                }
-            }
-            steps {
-                script {
-                    def status = sh(script: '''
-                        cd ai-projects-devops/hybrid-self-healing-agent
-                        mvn clean install -U
-                    ''', returnStatus: true)
-
-                    if (status != 0) {
-                        error("❌ Build still failing after AI fix")
-                    } else {
-                        echo "✅ Build Fixed Successfully"
-                    }
-                }
-            }
-        }
     }
 }
-
-
