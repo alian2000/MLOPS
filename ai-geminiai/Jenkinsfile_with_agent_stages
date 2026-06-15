@@ -1,7 +1,9 @@
 pipeline {
+    // Keeps startup unconstrained so individual stages can control their own pods
     agent none 
 
     options {
+        // Keeps background tracking processes from initializing duplicate SSH channels
         skipDefaultCheckout() 
     }
 
@@ -18,7 +20,7 @@ pipeline {
                     git branch: 'main',
                         url: 'https://github.com/alian2000/MLOPS.git'
 
-                    // 1. 🔥 Point this path to your new ai-geminiai folder
+                    // Navigate into your clean gemini project workspace directory
                     def status = sh(script: '''
                         cd ai-geminiai
                         echo "🚀 Running Maven Build on helm agent pod..."
@@ -34,7 +36,7 @@ pipeline {
                         echo "❌ Maven Build Failed"
                         writeFile file: 'ai-geminiai/build_failed', text: 'failed'
                         
-                        // 2. 🔥 Compress the entire workspace state cleanly
+                        // Native Linux tarball compresses everything (including hidden metadata tracking folders)
                         sh 'tar -czf workspace-state.tar.gz .git ai-geminiai/'
                         stash name: 'linux-archive-stash', includes: 'workspace-state.tar.gz'
                     }
@@ -49,8 +51,13 @@ pipeline {
                     label 'helm'
                 }
             }
+            // 🎨 This converts ANSI escape characters to beautiful dashboard colors in your browser UI
+            options {
+                ansiColor('xterm')
+            }
             steps {
                 script {
+                    // Reconstruct the exact failure state environment in your second container pod
                     try {
                         unstash 'linux-archive-stash'
                         sh 'tar -xzf workspace-state.tar.gz && rm workspace-state.tar.gz'
@@ -59,19 +66,21 @@ pipeline {
                         return
                     }
 
+                    // Check for the failure indicator flag file on disk
                     if (!fileExists('ai-geminiai/build_failed')) {
                         echo "build_failed flag not present. Skipping AI engine execution."
                         return
                     }
 
+                    // Securely extract and apply your API Key secret from the Jenkins credentials safe
                     withCredentials([string(credentialsId: 'GEMINI_API_KEY', variable: 'GEMINI_API_KEY')]) {
-                        echo "🤖 Running Gemini AI Fix on helm agent pod..."
                         
+                        // Establish authorized write permissions using your GitHub SSH private keys
                         sshagent(credentials: ['github-ssh-key']) {
                             sh '''
-                            # 3. 🔥 Navigate into the correct folder to use your new Gemini script
                             cd ai-geminiai
                             
+                            # Fetch the verified Google GenAI runtime dependencies
                             pip install --user google-genai --quiet
                             
                             if command -v python3 &> /dev/null
@@ -84,6 +93,7 @@ pipeline {
                             git config user.email "jenkins-helm@ai.com"
                             git config user.name "Helm AI Agent Bot"
                             
+                            # Force the SSH wrapper to implicitly trust the GitHub domain connection
                             export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
                             
                             git add .
@@ -92,7 +102,11 @@ pipeline {
                               echo "No changes needed."
                             else
                               git commit -m "[ai] auto-fix code via gemini loop"
+                              
+                              # Convert the target remote URL mapping to Git-over-SSH format
                               git remote set-url origin git@github.com:alian2000/MLOPS.git
+                              
+                              # Purge the old staging footprint and deploy the repaired state to your sandbox branch
                               git push origin :ai-test-fixes || true
                               git push origin main:ai-test-fixes
                             fi
