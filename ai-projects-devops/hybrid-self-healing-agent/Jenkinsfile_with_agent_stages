@@ -4,7 +4,6 @@ pipeline {
             label 'helm1'
         }
     }
-       
 
     tools {
         maven 'Maven3'
@@ -13,7 +12,6 @@ pipeline {
     stages {
         stage('Clone Code') {
             steps {
-                // 1. Updated to use your 'github-ssh-key' and SSH URL style
                 git branch: 'main',
                     credentialsId: 'github-ssh-key',
                     url: 'git@github.com:alian2000/MLOPS.git'
@@ -68,7 +66,6 @@ pipeline {
                 script {
                     echo "🤖 Running Hybrid AI Fix..."
 
-                    // 2. Swapped usernamePassword for sshUserPrivateKey wrapper
                     sshagent(credentials: ['github-ssh-key']) {
                         sh '''
                         cd ai-projects-devops/hybrid-self-healing-agent
@@ -89,8 +86,6 @@ pipeline {
                           echo "No changes"
                         else
                           git commit -m "[ai] auto-fix code + dependency issue"
-                          
-                          # 3. Use SSH endpoint URL for the push operation instead of HTTPS
                           git remote set-url origin git@github.com:alian2000/MLOPS.git
                           git push origin main
                         fi
