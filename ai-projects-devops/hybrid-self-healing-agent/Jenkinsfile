@@ -68,7 +68,7 @@ pipeline {
                         git config user.email "jenkins-helm@ai.com"
                         git config user.name "Helm1 AI Agent Bot"
                         
-                        # 🔥 FIX: Instructs the Git SSH process to trust github.com dynamically
+                        # Instructs the Git SSH process to trust github.com dynamically inside the container
                         export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
 
                         git add .
@@ -78,9 +78,13 @@ pipeline {
                         else
                           git commit -m "[ai] auto-fix code via helm1 worker node"
                           
-                          # Swaps the origin to SSH for writing permissions
+                          # Swaps the tracking origin to SSH for authorized push permission
                           git remote set-url origin git@github.com:alian2000/MLOPS.git
-                          git push origin main
+                          
+                          # SIMULATION LOGIC: Deletes the remote tracking test branch if it exists, 
+                          # then pushes local changes to 'ai-test-fixes' instead of breaking main.
+                          git push origin :ai-test-fixes || true
+                          git push origin main:ai-test-fixes
                         fi
                         '''
                     }
