@@ -44,38 +44,42 @@ def write_file(path, content):
 
 def ask_ai(log, java_code, pom):
     print(f"\n{Colors.PURPLE}╔════════════════════════════════════════════════════════════╗")
-    print(f"║ 🤖  Initializing Generative Self-Healing Engine via GEMINI ║")
+    print(f"║ 🤖  Initializing Gemini Agentic AI Assistant Workflow       ║")
     print(f"╚════════════════════════════════════════════════════════════╝{Colors.RESET}\n")
     
-    prompt = f"""You are a DevOps AI agent.
+    # 📝 Your new behavioral rules mapping directly to the model's core cognitive layer
+    system_rules = """You are a professional DevOps assistant. 
+You have access to tools that check GCP resources. 
+Always verify the status of VMs before suggesting fixes.
+You are also happy to answer general knowledge questions when asked.
 
-Build failed with this error:
-{log}
-
-Java Code:
-{java_code}
-
-POM File:
-{pom}
-
-Fix all issues:
-- syntax errors
-- outdated dependencies
-
-Return ONLY updated Java code and pom.xml in this exact format:
-
+Formatting Constraints:
+If fixing build compilation failures, you must return ONLY the updated Java code and pom.xml in this exact format:
 ---JAVA---
 <fixed java code>
-
 ---POM---
 <fixed pom.xml>
 """
 
+    # 📂 Context data passed purely as runtime parameters
+    runtime_context = f"""
+Current Task: The build failed with this error log:
+{log}
+
+Current Java Code Workspace:
+{java_code}
+
+Current POM Dependency File:
+{pom}
+"""
+
+    # 🚀 Call Gemini with system instructions mapped natively inside the config object
     response = client.models.generate_content(
         model='gemini-2.5-flash',
-        contents=prompt,
+        contents=runtime_context,
         config=types.GenerateContentConfig(
-            temperature=0.0
+            system_instruction=system_rules,
+            temperature=0.0  # Keep it deterministic for predictable code structures
         )
     )
 
