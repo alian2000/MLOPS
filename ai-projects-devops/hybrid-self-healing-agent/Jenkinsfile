@@ -1,17 +1,22 @@
 pipeline {
-    agent any
+    // 1. Point the entire pipeline execution to your 'helm1' node
+    agent {
+        node {
+            label 'helm'
+        }
+    }
 
     tools {
         maven 'Maven3'
     }
 
     stages {
-
         stage('Clone Code') {
             steps {
+                // 2. Pointing to your credentialsId 'github-ssh-key' and git URL style
                 git branch: 'main',
-                    credentialsId: '77574aa6-ebb8-4641-9540-da90dbcb1576',
-                    url: 'https://github.com/Rohitcs09/MLOPS.git'
+                    credentialsId: 'github-ssh-key',
+                    url: 'git@github.com:alian2000/MLOPS.git'
             }
         }
 
@@ -20,7 +25,7 @@ pipeline {
                 script {
                     def status = sh(script: '''
                         cd ai-projects/hybrid-self-healing-agent
-                        echo "🚀 Running Maven Build..."
+                        echo "🚀 Running Maven Build on helm1 node..."
                         mvn clean install -U > build.log 2>&1
                     ''', returnStatus: true)
 
