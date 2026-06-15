@@ -35,9 +35,11 @@ pipeline {
                         echo "❌ Maven Build Failed"
                         writeFile file: 'ai-projects-devops/hybrid-self-healing-agent/build_failed', text: 'failed'
                         
-                        // 🔥 FIX: Include **/.git* to bundle the entire repository state over to the next container
-                        stash name: 'build-failure-artifacts', 
-                              includes: '**/.git/**,**/.git*,ai-projects-devops/hybrid-self-healing-agent/build_failed,ai-projects-devops/hybrid-self-healing-agent/build.log,ai-projects-devops/hybrid-self-healing-agent/pom.xml,ai-projects-devops/hybrid-self-healing-agent/ai_agent.py'
+                        // 🔥 FIX: Stash EVERYTHING (including hidden directories like .git)
+                        // but exclude target binaries to keep the transfer fast.
+                        stash name: 'full-workspace-state', 
+                              includes: '**/*', 
+                              excludes: '**/target/**'
                     }
                 }
             }
@@ -52,9 +54,9 @@ pipeline {
             }
             steps {
                 script {
-                    // 1. Pull down the complete tracking archive state
+                    // 1. Pull down the complete workspace state
                     try {
-                        unstash 'build-failure-artifacts'
+                        unstash 'full-workspace-state'
                     } catch (Exception e) {
                         echo "No build failure stashes found. The previous build must have passed! Skipping AI fix safely."
                         return
