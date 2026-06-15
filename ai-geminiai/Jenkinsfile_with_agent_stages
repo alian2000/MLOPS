@@ -44,8 +44,8 @@ pipeline {
             }
         }
 
-        // --- STAGE 2: THE SELF-HEALING FIX ---
-        stage('AI Self-Healing Fix') {
+        // --- STAGE 2: GEMINI-SELF-HEALING FIX ---
+        stage('Gemini Agentic AI') {
             agent {
                 node {
                     label 'helm'
