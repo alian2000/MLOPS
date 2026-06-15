@@ -35,11 +35,10 @@ pipeline {
                         echo "❌ Maven Build Failed"
                         writeFile file: 'ai-projects-devops/hybrid-self-healing-agent/build_failed', text: 'failed'
                         
-                        // 🔥 FIX: Stash EVERYTHING (including hidden directories like .git)
-                        // but exclude target binaries to keep the transfer fast.
-                        stash name: 'full-workspace-state', 
-                              includes: '**/*', 
-                              excludes: '**/target/**'
+                        # 🔥 FIX: Use a native Linux tarball to compress EVERYTHING including hidden .git folders
+                        sh 'tar -czf workspace-state.tar.gz .git ai-projects-devops/'
+                        
+                        stash name: 'linux-archive-stash', includes: 'workspace-state.tar.gz'
                     }
                 }
             }
@@ -54,11 +53,12 @@ pipeline {
             }
             steps {
                 script {
-                    // 1. Pull down the complete workspace state
+                    // 1. Extract the compressed workspace state archive
                     try {
-                        unstash 'full-workspace-state'
+                        unstash 'linux-archive-stash'
+                        sh 'tar -xzf workspace-state.tar.gz && rm workspace-state.tar.gz'
                     } catch (Exception e) {
-                        echo "No build failure stashes found. The previous build must have passed! Skipping AI fix safely."
+                        echo "No build failure archive found. Skipping AI fix safely."
                         return
                     }
 
