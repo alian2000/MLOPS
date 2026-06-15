@@ -35,7 +35,7 @@ pipeline {
                         echo "❌ Maven Build Failed"
                         writeFile file: 'ai-projects-devops/hybrid-self-healing-agent/build_failed', text: 'failed'
                         
-                        # 🔥 FIX: Use a native Linux tarball to compress EVERYTHING including hidden .git folders
+                        // ✅ FIX: Native Linux tarball compresses EVERYTHING (including hidden .git tracking folders)
                         sh 'tar -czf workspace-state.tar.gz .git ai-projects-devops/'
                         
                         stash name: 'linux-archive-stash', includes: 'workspace-state.tar.gz'
