@@ -18,22 +18,24 @@ pipeline {
                     git branch: 'main',
                         url: 'https://github.com/alian2000/MLOPS.git'
 
+                    // 1. 🔥 Point this path to your new ai-geminiai folder
                     def status = sh(script: '''
-                        cd ai-projects-devops/hybrid-self-healing-agent
+                        cd ai-geminiai
                         echo "🚀 Running Maven Build on helm agent pod..."
                         mvn clean install -U > build.log 2>&1
                     ''', returnStatus: true)
 
-                    def log = readFile 'ai-projects-devops/hybrid-self-healing-agent/build.log'
+                    def log = readFile 'ai-geminiai/build.log'
                     echo "===== BUILD LOG START ====="
                     echo log
                     echo "===== BUILD LOG END ====="
 
                     if (status != 0) {
                         echo "❌ Maven Build Failed"
-                        writeFile file: 'ai-projects-devops/hybrid-self-healing-agent/build_failed', text: 'failed'
+                        writeFile file: 'ai-geminiai/build_failed', text: 'failed'
                         
-                        sh 'tar -czf workspace-state.tar.gz .git ai-projects-devops/'
+                        // 2. 🔥 Compress the entire workspace state cleanly
+                        sh 'tar -czf workspace-state.tar.gz .git ai-geminiai/'
                         stash name: 'linux-archive-stash', includes: 'workspace-state.tar.gz'
                     }
                 }
@@ -57,21 +59,19 @@ pipeline {
                         return
                     }
 
-                    if (!fileExists('ai-projects-devops/hybrid-self-healing-agent/build_failed')) {
+                    if (!fileExists('ai-geminiai/build_failed')) {
                         echo "build_failed flag not present. Skipping AI engine execution."
                         return
                     }
 
-                    // 🔐 Securely bind your saved Jenkins credential to an environment variable
                     withCredentials([string(credentialsId: 'GEMINI_API_KEY', variable: 'GEMINI_API_KEY')]) {
-                        
                         echo "🤖 Running Gemini AI Fix on helm agent pod..."
                         
                         sshagent(credentials: ['github-ssh-key']) {
                             sh '''
-                            cd ai-projects-devops/hybrid-self-healing-agent
+                            # 3. 🔥 Navigate into the correct folder to use your new Gemini script
+                            cd ai-geminiai
                             
-                            # Ensure the official Google GenAI library is present inside the container
                             pip install --user google-genai --quiet
                             
                             if command -v python3 &> /dev/null
