@@ -1,8 +1,8 @@
 pipeline {
-    // 1. Assign helm1 as the worker node for this job
+    // 1. Assign your 'helm1' worker node/template for this job
     agent {
         node {
-            label 'helm'
+            label 'helm1'
         }
     }
 
@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Clone Code') {
             steps {
-                // Uses HTTPS to clone cleanly without SSH host-key verification crashes
+                // Uses public HTTPS to clone cleanly without SSH host-key verification crashes
                 git branch: 'main',
                     url: 'https://github.com/alian2000/MLOPS.git'
             }
@@ -67,6 +67,10 @@ pipeline {
 
                         git config user.email "jenkins-helm@ai.com"
                         git config user.name "Helm1 AI Agent Bot"
+                        
+                        # 🔥 FIX: Instructs the Git SSH process to trust github.com dynamically
+                        export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
+
                         git add .
 
                         if git diff --cached --quiet; then
@@ -74,7 +78,7 @@ pipeline {
                         else
                           git commit -m "[ai] auto-fix code via helm1 worker node"
                           
-                          # Seamlessly swaps the origin to SSH for writing permissions
+                          # Swaps the origin to SSH for writing permissions
                           git remote set-url origin git@github.com:alian2000/MLOPS.git
                           git push origin main
                         fi
