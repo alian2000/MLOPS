@@ -1,5 +1,5 @@
 public class App {
     public static void main(String[] args) {
-        System.out.printlnn("Hello AI");
+        System.out.printx("Hello GEMINI AI WORLD");
     }
 }
