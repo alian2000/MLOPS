@@ -2,7 +2,7 @@ pipeline {
     // 1. Assign your 'helm1' worker node/template for this job
     agent {
         node {
-            label 'helm1'
+            label 'helm'
         }
     }
 
