@@ -35,9 +35,9 @@ pipeline {
                         echo "❌ Maven Build Failed"
                         writeFile file: 'ai-projects-devops/hybrid-self-healing-agent/build_failed', text: 'failed'
                         
-                        // Bundle the failure artifacts so the next container can access them
+                        // 🔥 FIX: Include **/.git* to bundle the entire repository state over to the next container
                         stash name: 'build-failure-artifacts', 
-                              includes: 'ai-projects-devops/hybrid-self-healing-agent/build_failed,ai-projects-devops/hybrid-self-healing-agent/build.log,ai-projects-devops/hybrid-self-healing-agent/pom.xml,ai-projects-devops/hybrid-self-healing-agent/ai_agent.py'
+                              includes: '**/.git/**,**/.git*,ai-projects-devops/hybrid-self-healing-agent/build_failed,ai-projects-devops/hybrid-self-healing-agent/build.log,ai-projects-devops/hybrid-self-healing-agent/pom.xml,ai-projects-devops/hybrid-self-healing-agent/ai_agent.py'
                     }
                 }
             }
@@ -52,7 +52,7 @@ pipeline {
             }
             steps {
                 script {
-                    // 1. Pull down the artifacts first so the workspace isn't empty anymore
+                    // 1. Pull down the complete tracking archive state
                     try {
                         unstash 'build-failure-artifacts'
                     } catch (Exception e) {
