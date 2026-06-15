@@ -1,184 +1,107 @@
 import os
-import subprocess
-import re
+import sys
 import time
+from google import genai
+from google.genai import types
 
-# -------------------------------
-# 📂 Auto-detect files
-# -------------------------------
-def find_java_file():
-    for root, dirs, files in os.walk(os.getcwd()):
-        for file in files:
-            if file.endswith(".java"):
-                return os.path.join(root, file)
-    return None
+# 💡 Note: Jenkins will inject this environment variable for us
+GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 
-JAVA_FILE = find_java_file()
-POM_FILE = os.path.join(os.getcwd(), "pom.xml")
+if not GEMINI_KEY:
+    print("❌ ERROR: GEMINI_API_KEY environment variable is missing!")
+    sys.exit(1)
 
+# Initialize the official Google GenAI Client
+client = genai.Client(api_key=GEMINI_KEY)
 
-# -------------------------------
-# 📝 LOG FUNCTION
-# -------------------------------
-def log_action(message):
-    with open("build.log", "a") as f:
-        f.write(f"\n👉 {message}\n")
+LOG_FILE = "ai-devops-maven/build.log"
+JAVA_FILE = "ai-devops-maven/src/main/java/App.java"
+POM_FILE = "ai-devops-maven/pom.xml"
 
 
-# -------------------------------
-# 🔧 FIX 1: Java Syntax
-# -------------------------------
-def fix_java_syntax():
-    print("🔍 Checking Java syntax...")
+def read_file(path):
+    if os.path.exists(path):
+        with open(path, "r") as f:
+            return f.read()
+    return ""
 
-    if not JAVA_FILE:
-        print("❌ No Java file found")
-        log_action("No Java file found")
-        return False
 
-    with open(JAVA_FILE, "r") as f:
-        lines = f.readlines()
+def write_file(path, content):
+    with open(path, "w") as f:
+        f.write(content)
 
-    fixed = False
-    new_lines = []
 
-    for line in lines:
-        stripped = line.strip()
+def ask_ai(log, java_code, pom):
+    print("\n🤖 Analyzing build failures using Google Gemini...\n")
+    
+    prompt = f"""You are a DevOps AI agent.
 
-        if "System.out.println" in stripped and not stripped.endswith(";"):
-            print("⚠️ Missing semicolon detected")
-            log_action("Missing semicolon detected")
+Build failed with this error:
+{log}
 
-            line = line.rstrip() + ";\n"
-            fixed = True
+Java Code:
+{java_code}
 
-        new_lines.append(line)
+POM File:
+{pom}
 
-    if fixed:
-        with open(JAVA_FILE, "w") as f:
-            f.writelines(new_lines)
+Fix all issues:
+- syntax errors
+- outdated dependencies
 
-        print("✅ Fixed: Semicolon added")
-        log_action("Fixed Java syntax (semicolon added)")
+Return ONLY updated Java code and pom.xml in this exact format:
+
+---JAVA---
+<fixed java code>
+
+---POM---
+<fixed pom.xml>
+"""
+
+    # Call Gemini 2.5 Flash with a temperature of 0 for strict, deterministic code fixes
+    response = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            temperature=0.0
+        )
+    )
+
+    return response.text
+
+
+def apply_fix(ai_output):
+    if "---JAVA---" in ai_output and "---POM---" in ai_output:
+        java_part = ai_output.split("---JAVA---")[1].split("---POM---")[0]
+        pom_part = ai_output.split("---POM---")[1]
+
+        write_file(JAVA_FILE, java_part.strip())
+        write_file(POM_FILE, pom_part.strip())
+
+        print("✅ Gemini Fix Applied Successfully")
         return True
 
-    print("✔ No syntax issue")
-    log_action("No syntax issue found")
+    print("⚠️ Gemini response formatting was invalid")
     return False
 
 
-# -------------------------------
-# 🔧 FIX 2: JUnit Upgrade
-# -------------------------------
-def fix_junit():
-    print("🔍 Checking JUnit dependency...")
+def main():
+    print("🤖 AI Self-Healing Agent Started...")
 
-    if not os.path.exists(POM_FILE):
-        print("❌ pom.xml not found")
-        log_action("pom.xml not found")
-        return False
+    log = read_file(LOG_FILE)
+    if not log:
+        print("❌ build.log not found or empty")
+        return
 
-    with open(POM_FILE, "r") as f:
-        pom = f.read()
+    java_code = read_file(JAVA_FILE)
+    pom = read_file(POM_FILE)
 
-    updated = pom
+    ai_output = ask_ai(log, java_code, pom)
 
-    pattern = r'(<dependency>.*?<groupId>junit</groupId>.*?<artifactId>junit</artifactId>.*?<version>)(.*?)(</version>.*?</dependency>)'
+    print("\n🤖 Gemini Response:\n", ai_output)
 
-    updated = re.sub(
-        pattern,
-        r'\g<1>4.13.2\g<3>',
-        updated,
-        flags=re.DOTALL
-    )
-
-    # If not present → add
-    if "<artifactId>junit</artifactId>" not in updated:
-        print("⚠️ JUnit not found, adding dependency")
-        log_action("JUnit dependency missing → adding")
-
-        junit_block = """
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
-            <scope>test</scope>
-        </dependency>
-        """
-
-        updated = updated.replace("</dependencies>", junit_block + "\n</dependencies>")
-
-    if updated != pom:
-        with open(POM_FILE, "w") as f:
-            f.write(updated)
-
-        print("✅ Fixed: JUnit updated to 4.13.2")
-        log_action("JUnit dependency set to 4.13.2")
-        return True
-
-    print("✔ JUnit already correct")
-    log_action("JUnit already correct")
-    return False
+    apply_fix(ai_output)
 
 
-# -------------------------------
-# 🏗️ BUILD FUNCTION
-# -------------------------------
-def run_build(attempt):
-    print("🚀 Running Maven build...")
-
-    result = subprocess.run(
-        ["mvn", "clean", "install"],
-        capture_output=True,
-        text=True
-    )
-
-    with open("build.log", "a") as f:
-        f.write(f"\n\n===== ATTEMPT {attempt} =====\n")
-        f.write(result.stdout)
-        f.write("\n--- ERRORS ---\n")
-        f.write(result.stderr)
-
-    return result.returncode
-
-
-# -------------------------------
-# 🤖 MAIN AGENT
-# -------------------------------
-def auto_fix():
-    print("🤖 AI Agent Started...\n")
-
-    for i in range(3):
-        print(f"\n🔁 Attempt {i+1}")
-
-        status = run_build(i+1)
-
-        if status == 0:
-            print("🎉 BUILD SUCCESS")
-            log_action("Build succeeded")
-            return
-
-        print("❌ Build failed. Running fixes...\n")
-
-        # 🔥 ALWAYS RUN BOTH FIXES
-        syntax_fixed = fix_java_syntax()
-        junit_fixed = fix_junit()
-
-        if syntax_fixed or junit_fixed:
-            print("\n🔁 Re-running build after fixes...\n")
-            log_action("Re-running build after fixes")
-            time.sleep(2)
-        else:
-            print("⚠️ No fix applied")
-            log_action("No fix applied")
-            break
-
-    print("❌ Build still failing")
-    log_action("Build failed after retries")
-
-
-# -------------------------------
-# 🚀 ENTRY POINT
-# -------------------------------
 if __name__ == "__main__":
-    auto_fix()
+    main()
